@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Dashboard')</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
 
     {{-- Tailwind & Vite --}}
     @vite('resources/css/app.css')
@@ -185,7 +186,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                 </svg>
-                POS
+                Sales
             </a>
 
             <!-- Inventory Dropdown -->
@@ -256,8 +257,19 @@
                 @yield('btn')
                 <h1 class="ml-4 text-xl font-semibold">@yield('name')</h1>
             </div>
-            <div>
-                <span>Welcome, User</span>
+            <div class="flex justify-center mt-8">
+                <a href="{{ route('pos.items') }}"
+                    class="flex items-center gap-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:scale-105 hover:shadow-xl transition transform duration-200 ease-in-out focus:ring-4 focus:ring-green-300">
+            
+                    <!-- Cashier / POS icon (Shopping Cart) -->
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m13-9l2 9M9 21h6">
+                        </path>
+                    </svg>
+            
+                    <span class="text-lg">POINT OF SALE</span>
+                </a>
             </div>
         </nav>
 

@@ -289,8 +289,9 @@
     </div>
 
     {{-- Include the QR code scanner library --}}
-    <script src="https://unpkg.com/html5-qrcode"></script>
+
     <script>
+
         let html5QrCode;
         let currentCameraId = null;
         let cameras = [];
@@ -473,5 +474,26 @@
                 stopQrScanner();
             }
         });
+
+         const brandModal = document.getElementById('brandModal');
+            document.getElementById('openBrandModal').addEventListener('click', () => {
+                brandModal.classList.remove('hidden');
+                brandModal.classList.add('flex');
+            });
+            document.getElementById('closeBrandModal').addEventListener('click', () => {
+                brandModal.classList.add('hidden');
+                brandModal.classList.remove('flex');
+            });
+
+            // Category modal
+            const categoryModal = document.getElementById('categoryModal');
+            document.getElementById('openCategoryModal').addEventListener('click', () => {
+                categoryModal.classList.remove('hidden');
+                categoryModal.classList.add('flex');
+            });
+            document.getElementById('closeCategoryModal').addEventListener('click', () => {
+                categoryModal.classList.add('hidden');
+                categoryModal.classList.remove('flex');
+            });
     </script>
 @endsection

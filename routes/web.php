@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,3 +46,7 @@ Route::get('/Suppliers/List', function () {
 Route::get('/tester', function () {
     return view('tester.testscanner');
 })->name('tester.testscanner');
+
+Route::get('/POS/Items', function () {
+    return view('POS_SYSTEM.item_list');
+})->name('pos.items');
