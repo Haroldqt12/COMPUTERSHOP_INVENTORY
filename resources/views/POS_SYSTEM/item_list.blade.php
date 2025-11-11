@@ -46,12 +46,13 @@
         <select
             class="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 ease-in-out bg-white">
             <option value="" selected>Brand</option>
-            <!-- Price Sorting -->
-            <option value="AMD">AMD</option>
-            <option value="Intel">Intel</option>
-            <option value="GeForce">GeForce</option>
-            <option value="Logitech">Logitech</option>
+            @isset($brands)
+                @foreach ($brands as $brand)
+                    <option value="{{ $brand->id }}">{{ $brand->brand_name }}</option>
+                @endforeach
+            @endisset
         </select>
+
     </div>
     <div class="flex flex-col lg:flex-row gap-6 mt-6">
 

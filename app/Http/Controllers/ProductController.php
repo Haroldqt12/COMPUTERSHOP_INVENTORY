@@ -17,11 +17,7 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
-        
-
-    }
+    public function index() {}
 
     public function create()
     {
@@ -31,7 +27,7 @@ class ProductController extends Controller
         return view('PRODUCT.add_product', compact('categories', 'brands', 'suppliers'));
     }
 
-    
+
     public function store(ProductRequest $request)
     {
         $data = $request->validated();
@@ -43,7 +39,6 @@ class ProductController extends Controller
         Product::create($data);
 
         return redirect()->route('product.add')->with('success', 'Product created successfully.');
-
     }
 
     /**
