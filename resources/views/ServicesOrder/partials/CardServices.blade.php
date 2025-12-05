@@ -489,150 +489,158 @@
     </div>
 </div>
 
-<script>
-    // Multi-status selection with HTMX (similar to POS system)
-    let selectedStatuses = [];
-    let currentSort = 'newest'; // Default to newest first
+@push('scripts')
+    <script>
 
-    // Initialize with any pre-selected status
-    document.addEventListener('DOMContentLoaded', function () {
-        // Start with 'all' selected by default
-        selectedStatuses = [];
-        console.log('Services filter loaded with multi-selection functionality');
-    });
+        // HTMX Performance Configuration
+        htmx.config.timeout = 10000;
+        htmx.config.defaultSwapDelay = 100;
+        htmx.config.defaultSettleDelay = 100;
 
-    // Toggle sort order
-    function toggleSort(sortType, buttonElement) {
-        currentSort = sortType;
+        // Multi-status selection with HTMX (similar to POS system)
+        let selectedStatuses = [];
+        let currentSort = 'newest'; // Default to newest first
 
-        // Update hidden input
-        document.getElementById('sortOrder').value = sortType;
+        // Initialize with any pre-selected status
+        document.addEventListener('DOMContentLoaded', function () {
+            // Start with 'all' selected by default
+            selectedStatuses = [];
+            console.log('Services filter loaded with multi-selection functionality');
+        });
 
-        // Update button states
-        const newestBtn = document.getElementById('sortNewest');
-        const oldestBtn = document.getElementById('sortOldest');
+        // Toggle sort order
+        function toggleSort(sortType, buttonElement) {
+            currentSort = sortType;
 
-        if (sortType === 'newest') {
-            newestBtn.classList.remove('text-blue-500', 'bg-white');
-            newestBtn.classList.add('text-white', 'bg-blue-500');
-            oldestBtn.classList.remove('text-white', 'bg-blue-500');
-            oldestBtn.classList.add('text-blue-500', 'bg-white');
-        } else {
-            oldestBtn.classList.remove('text-blue-500', 'bg-white');
-            oldestBtn.classList.add('text-white', 'bg-blue-500');
-            newestBtn.classList.remove('text-white', 'bg-blue-500');
-            newestBtn.classList.add('text-blue-500', 'bg-white');
+            // Update hidden input
+            document.getElementById('sortOrder').value = sortType;
+
+            // Update button states
+            const newestBtn = document.getElementById('sortNewest');
+            const oldestBtn = document.getElementById('sortOldest');
+
+            if (sortType === 'newest') {
+                newestBtn.classList.remove('text-blue-500', 'bg-white');
+                newestBtn.classList.add('text-white', 'bg-blue-500');
+                oldestBtn.classList.remove('text-white', 'bg-blue-500');
+                oldestBtn.classList.add('text-blue-500', 'bg-white');
+            } else {
+                oldestBtn.classList.remove('text-blue-500', 'bg-white');
+                oldestBtn.classList.add('text-white', 'bg-blue-500');
+                newestBtn.classList.remove('text-white', 'bg-blue-500');
+                newestBtn.classList.add('text-blue-500', 'bg-white');
+            }
+
+            // Update services display
+            updateServicesDisplay();
         }
 
-        // Update services display
-        updateServicesDisplay();
-    }
+        // Toggle individual status
+        function toggleStatus(statusId, buttonElement) {
+            const index = selectedStatuses.indexOf(statusId.toString());
 
-    // Toggle individual status
-    function toggleStatus(statusId, buttonElement) {
-        const index = selectedStatuses.indexOf(statusId.toString());
+            if (index > -1) {
+                // Remove status
+                selectedStatuses.splice(index, 1);
+                buttonElement.classList.remove('bg-[#151F28]', 'text-white');
+                buttonElement.classList.add('bg-white', 'text-[#151F28]');
+                buttonElement.setAttribute('aria-current', 'false');
 
-        if (index > -1) {
-            // Remove status
-            selectedStatuses.splice(index, 1);
-            buttonElement.classList.remove('bg-[#151F28]', 'text-white');
-            buttonElement.classList.add('bg-white', 'text-[#151F28]');
-            buttonElement.setAttribute('aria-current', 'false');
+                // Update hidden checkbox
+                const checkbox = document.querySelector(`[data-status-filter="${statusId}"]`);
+                if (checkbox && checkbox.type === 'checkbox') {
+                    checkbox.removeAttribute('checked');
+                }
+            } else {
+                // Add status
+                selectedStatuses.push(statusId.toString());
+                buttonElement.classList.remove('bg-white', 'text-[#151F28]');
+                buttonElement.classList.add('bg-[#151F28]', 'text-white');
+                buttonElement.setAttribute('aria-current', 'true');
 
-            // Update hidden checkbox
-            const checkbox = document.querySelector(`[data-status-filter="${statusId}"]`);
-            if (checkbox && checkbox.type === 'checkbox') {
+                // Update hidden checkbox
+                const checkbox = document.querySelector(`[data-status-filter="${statusId}"]`);
+                if (checkbox && checkbox.type === 'checkbox') {
+                    checkbox.setAttribute('checked', 'checked');
+                }
+            }
+
+            // Deactivate ALL button when any specific status is selected
+            if (selectedStatuses.length > 0) {
+                const allButton = document.querySelector('li[value="ALL"] button');
+                const allInput = document.querySelector('[data-status-filter="all"]');
+
+                allButton.classList.remove('bg-[#151F28]', 'text-white');
+                allButton.classList.add('bg-white', 'text-[#151F28]');
+                allButton.setAttribute('aria-current', 'false');
+                allInput.removeAttribute('checked');
+            }
+
+            // Update services display
+            updateServicesDisplay();
+        }
+
+        // Clear all statuses (activate ALL)
+        function clearAllStatuses() {
+            selectedStatuses = [];
+
+            // Reset all status buttons
+            document.querySelectorAll('.status-btn').forEach(btn => {
+                if (btn.getAttribute('data-status-id')) {
+                    btn.classList.remove('bg-[#151F28]', 'text-white');
+                    btn.classList.add('bg-white', 'text-[#151F28]');
+                    btn.setAttribute('aria-current', 'false');
+                }
+            });
+
+            // Reset all checkboxes
+            document.querySelectorAll('[data-status-filter]:not([data-status-filter="all"])').forEach(checkbox => {
                 checkbox.removeAttribute('checked');
-            }
-        } else {
-            // Add status
-            selectedStatuses.push(statusId.toString());
-            buttonElement.classList.remove('bg-white', 'text-[#151F28]');
-            buttonElement.classList.add('bg-[#151F28]', 'text-white');
-            buttonElement.setAttribute('aria-current', 'true');
+            });
 
-            // Update hidden checkbox
-            const checkbox = document.querySelector(`[data-status-filter="${statusId}"]`);
-            if (checkbox && checkbox.type === 'checkbox') {
-                checkbox.setAttribute('checked', 'checked');
-            }
-        }
-
-        // Deactivate ALL button when any specific status is selected
-        if (selectedStatuses.length > 0) {
+            // Update ALL button state
             const allButton = document.querySelector('li[value="ALL"] button');
             const allInput = document.querySelector('[data-status-filter="all"]');
 
-            allButton.classList.remove('bg-[#151F28]', 'text-white');
-            allButton.classList.add('bg-white', 'text-[#151F28]');
-            allButton.setAttribute('aria-current', 'false');
-            allInput.removeAttribute('checked');
+            allButton.classList.remove('bg-white', 'text-[#151F28]');
+            allButton.classList.add('bg-[#151F28]', 'text-white');
+            allButton.setAttribute('aria-current', 'true');
+            allInput.setAttribute('checked', 'checked');
+
+            // Update services display
+            updateServicesDisplay();
         }
 
-        // Update services display
-        updateServicesDisplay();
-    }
+        // Update services display via HTMX
+        function updateServicesDisplay() {
+            const params = new URLSearchParams();
 
-    // Clear all statuses (activate ALL)
-    function clearAllStatuses() {
-        selectedStatuses = [];
-
-        // Reset all status buttons
-        document.querySelectorAll('.status-btn').forEach(btn => {
-            if (btn.getAttribute('data-status-id')) {
-                btn.classList.remove('bg-[#151F28]', 'text-white');
-                btn.classList.add('bg-white', 'text-[#151F28]');
-                btn.setAttribute('aria-current', 'false');
+            // Add search filter
+            const searchInput = document.getElementById('searchServices');
+            if (searchInput && searchInput.value) {
+                params.append('search', searchInput.value);
             }
-        });
 
-        // Reset all checkboxes
-        document.querySelectorAll('[data-status-filter]:not([data-status-filter="all"])').forEach(checkbox => {
-            checkbox.removeAttribute('checked');
-        });
+            // Add selected statuses
+            if (selectedStatuses.length > 0) {
+                selectedStatuses.forEach(status => {
+                    params.append('status[]', status);
+                });
+            } else {
+                // If no specific statuses selected, use 'all'
+                params.append('status[]', 'all');
+            }
 
-        // Update ALL button state
-        const allButton = document.querySelector('li[value="ALL"] button');
-        const allInput = document.querySelector('[data-status-filter="all"]');
+            // Add sort parameter
+            params.append('sort', currentSort);
 
-        allButton.classList.remove('bg-white', 'text-[#151F28]');
-        allButton.classList.add('bg-[#151F28]', 'text-white');
-        allButton.setAttribute('aria-current', 'true');
-        allInput.setAttribute('checked', 'checked');
+            // Make HTMX request
+            const url = '{{ route("api.services.list") }}' + (params.toString() ? '?' + params.toString() : '');
 
-        // Update services display
-        updateServicesDisplay();
-    }
-
-    // Update services display via HTMX
-    function updateServicesDisplay() {
-        const params = new URLSearchParams();
-
-        // Add search filter
-        const searchInput = document.getElementById('searchServices');
-        if (searchInput && searchInput.value) {
-            params.append('search', searchInput.value);
-        }
-
-        // Add selected statuses
-        if (selectedStatuses.length > 0) {
-            selectedStatuses.forEach(status => {
-                params.append('status[]', status);
+            htmx.ajax('GET', url, {
+                target: '#servicesContainer',
+                swap: 'innerHTML'
             });
-        } else {
-            // If no specific statuses selected, use 'all'
-            params.append('status[]', 'all');
         }
-
-        // Add sort parameter
-        params.append('sort', currentSort);
-
-        // Make HTMX request
-        const url = '{{ route("api.services.list") }}' + (params.toString() ? '?' + params.toString() : '');
-
-        htmx.ajax('GET', url, {
-            target: '#servicesContainer',
-            swap: 'innerHTML'
-        });
-    }
-</script>
+    </script>
+@endpush

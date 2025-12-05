@@ -358,153 +358,15 @@
             </form>
         </div>
     </div>
+    @push('scripts')
+        <script>
+            // HTMX Performance Configuration
+            htmx.config.timeout = 10000;
+            htmx.config.defaultSwapDelay = 100;
+            htmx.config.defaultSettleDelay = 100;
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const toggleModal = (modal, show) => {
-                if (!modal) return;
-                if (show) {
-                    modal.classList.remove('hidden');
-                    modal.classList.add('flex');
-                } else {
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
-                }
-            };
-
-            const productModal = document.getElementById('productEditModal');
-            const productForm = document.getElementById('productEditForm');
-            // ============= PRODUCT FORM FIELDS (PRICE NOW INCLUDED) =============
-            const productFields = {
-                product_name: productForm.querySelector('[name="product_name"]'),
-                serial_number: productForm.querySelector('[name="serial_number"]'),
-                brand_id: productForm.querySelector('[name="brand_id"]'),
-                category_id: productForm.querySelector('[name="category_id"]'),
-                supplier_id: productForm.querySelector('[name="supplier_id"]'),
-                warranty_period: productForm.querySelector('[name="warranty_period"]'),
-                price: productForm.querySelector('[name="price"]'),
-            };
-            // ============= END PRODUCT FORM FIELDS =============
-
-            const bindProductButtons = () => {
-                document.querySelectorAll('[data-product-modal]').forEach(button => {
-                    if (button.dataset.bound === 'true') {
-                        return;
-                    }
-                    button.dataset.bound = 'true';
-                    button.addEventListener('click', () => {
-                        try {
-                            const payload = JSON.parse(button.dataset.product);
-                            productForm.action = button.dataset.action;
-                            productFields.product_name.value = payload.product_name || '';
-                            productFields.serial_number.value = payload.serial_number || '';
-                            productFields.brand_id.value = payload.brand_id || '';
-                            productFields.category_id.value = payload.category_id || '';
-                            productFields.supplier_id.value = payload.supplier_id || '';
-                            productFields.warranty_period.value = payload.warranty_period || '';
-                            productFields.price.value = payload.price || 0;
-
-                            // Update product condition based on supplier_id
-                            const supplierValue = productFields.supplier_id.value;
-                            const conditionInput = document.getElementById('editProductCondition');
-                            if (conditionInput) {
-                                conditionInput.value = (supplierValue === '' || supplierValue === null) ? 'Second Hand' : 'Brand New';
-                            }
-
-                            toggleModal(productModal, true);
-                        } catch (error) {
-                            console.error('Unable to parse product payload', error);
-                        }
-                    });
-                });
-            };
-
-            bindProductButtons();
-
-            // ADDED: Handle supplier change to update product condition
-            const supplierSelect = document.getElementById('editSupplierSelect');
-            const conditionInput = document.getElementById('editProductCondition');
-
-            const updateProductCondition = () => {
-                const supplierValue = supplierSelect.value;
-                if (supplierValue === '' || supplierValue === null) {
-                    // Supplier is null = Second Hand
-                    conditionInput.value = 'Second Hand';
-                } else {
-                    // Supplier is not null = Brand New
-                    conditionInput.value = 'Brand New';
-                }
-            };
-
-            if (supplierSelect && conditionInput) {
-                supplierSelect.addEventListener('change', updateProductCondition);
-            }
-
-            document.body.addEventListener('htmx:afterSwap', (event) => {
-                if (event.target.id === 'product-table-container') {
-                    bindProductButtons();
-                }
-            });
-
-            document.getElementById('openBrandEditor')?.addEventListener('click', () => {
-                toggleModal(document.getElementById('brandEditModal'), true);
-                syncBrandForm();
-            });
-
-            document.getElementById('openCategoryEditor')?.addEventListener('click', () => {
-                toggleModal(document.getElementById('categoryEditModal'), true);
-                syncCategoryForm();
-            });
-
-            document.querySelectorAll('[data-modal-close]').forEach(button => {
-                button.addEventListener('click', () => {
-                    toggleModal(button.closest('.fixed'), false);
-                });
-            });
-
-            window.addEventListener('click', (event) => {
-                document.querySelectorAll('.fixed[id$="Modal"]').forEach(modal => {
-                    if (event.target === modal) {
-                        toggleModal(modal, false);
-                    }
-                });
-            });
-
-            const syncBrandForm = () => {
-                const form = document.getElementById('brandEditForm');
-                const selector = document.getElementById('brandEditSelector');
-                if (!form || !selector) return;
-                const selected = selector.selectedOptions[0];
-                if (!selected) return;
-                form.action = `${form.dataset.actionBase}/${selected.value}`;
-                form.querySelector('[name="brand_name"]').value = selected.textContent.trim();
-            };
-
-            const syncCategoryForm = () => {
-                const form = document.getElementById('categoryEditForm');
-                const selector = document.getElementById('categoryEditSelector');
-                if (!form || !selector) return;
-                const selected = selector.selectedOptions[0];
-                if (!selected) return;
-                form.action = `${form.dataset.actionBase}/${selected.value}`;
-                form.querySelector('[name="category_name"]').value = selected.textContent.trim();
-            };
-
-            document.getElementById('brandEditSelector')?.addEventListener('change', syncBrandForm);
-            document.getElementById('categoryEditSelector')?.addEventListener('change', syncCategoryForm);
-
-            // ADDED: Price modal setup
-            let priceModalSetup = {
-                backdropBound: false,
-            };
-
-            const setupPriceModal = () => {
-                const modal = document.getElementById('priceEditModal');
-                const form = document.getElementById('priceEditForm');
-                const priceInput = form?.querySelector('[name="price"]');
-                const meta = document.getElementById('priceEditMeta');
-
-                const toggle = (show) => {
+            document.addEventListener('DOMContentLoaded', () => {
+                const toggleModal = (modal, show) => {
                     if (!modal) return;
                     if (show) {
                         modal.classList.remove('hidden');
@@ -515,97 +377,240 @@
                     }
                 };
 
-                document.querySelectorAll('.edit-price-btn').forEach((btn) => {
-                    if (btn.dataset.bound === 'true') {
-                        return;
+                const productModal = document.getElementById('productEditModal');
+                const productForm = document.getElementById('productEditForm');
+                // ============= PRODUCT FORM FIELDS (PRICE NOW INCLUDED) =============
+                const productFields = {
+                    product_name: productForm.querySelector('[name="product_name"]'),
+                    serial_number: productForm.querySelector('[name="serial_number"]'),
+                    brand_id: productForm.querySelector('[name="brand_id"]'),
+                    category_id: productForm.querySelector('[name="category_id"]'),
+                    supplier_id: productForm.querySelector('[name="supplier_id"]'),
+                    warranty_period: productForm.querySelector('[name="warranty_period"]'),
+                    price: productForm.querySelector('[name="price"]'),
+                };
+                // ============= END PRODUCT FORM FIELDS =============
+
+                const bindProductButtons = () => {
+                    document.querySelectorAll('[data-product-modal]').forEach(button => {
+                        if (button.dataset.bound === 'true') {
+                            return;
+                        }
+                        button.dataset.bound = 'true';
+                        button.addEventListener('click', () => {
+                            try {
+                                const payload = JSON.parse(button.dataset.product);
+                                productForm.action = button.dataset.action;
+                                productFields.product_name.value = payload.product_name || '';
+                                productFields.serial_number.value = payload.serial_number || '';
+                                productFields.brand_id.value = payload.brand_id || '';
+                                productFields.category_id.value = payload.category_id || '';
+                                productFields.supplier_id.value = payload.supplier_id || '';
+                                productFields.warranty_period.value = payload.warranty_period || '';
+                                productFields.price.value = payload.price || 0;
+
+                                // Update product condition based on supplier_id
+                                const supplierValue = productFields.supplier_id.value;
+                                const conditionInput = document.getElementById('editProductCondition');
+                                if (conditionInput) {
+                                    conditionInput.value = (supplierValue === '' || supplierValue === null) ? 'Second Hand' : 'Brand New';
+                                }
+
+                                toggleModal(productModal, true);
+                            } catch (error) {
+                                console.error('Unable to parse product payload', error);
+                            }
+                        });
+                    });
+                };
+
+                bindProductButtons();
+
+                // ADDED: Handle supplier change to update product condition
+                const supplierSelect = document.getElementById('editSupplierSelect');
+                const conditionInput = document.getElementById('editProductCondition');
+
+                const updateProductCondition = () => {
+                    const supplierValue = supplierSelect.value;
+                    if (supplierValue === '' || supplierValue === null) {
+                        // Supplier is null = Second Hand
+                        conditionInput.value = 'Second Hand';
+                    } else {
+                        // Supplier is not null = Brand New
+                        conditionInput.value = 'Brand New';
                     }
-                    btn.dataset.bound = 'true';
-                    btn.addEventListener('click', () => {
-                        const payload = JSON.parse(btn.dataset.product || '{}');
-                        form.action = btn.dataset.action;
-                        priceInput.value = payload.price ?? 0;
-                        meta.textContent = `${payload.product_name ?? ''} • ${payload.brand_name ?? ''} • ${payload.category_name ?? ''}`;
-                        toggle(true);
+                };
+
+                if (supplierSelect && conditionInput) {
+                    supplierSelect.addEventListener('change', updateProductCondition);
+                }
+
+                document.body.addEventListener('htmx:afterSwap', (event) => {
+                    if (event.target.id === 'product-table-container') {
+                        bindProductButtons();
+                    }
+                });
+
+                document.getElementById('openBrandEditor')?.addEventListener('click', () => {
+                    toggleModal(document.getElementById('brandEditModal'), true);
+                    syncBrandForm();
+                });
+
+                document.getElementById('openCategoryEditor')?.addEventListener('click', () => {
+                    toggleModal(document.getElementById('categoryEditModal'), true);
+                    syncCategoryForm();
+                });
+
+                document.querySelectorAll('[data-modal-close]').forEach(button => {
+                    button.addEventListener('click', () => {
+                        toggleModal(button.closest('.fixed'), false);
                     });
                 });
 
-                document.querySelectorAll('[data-price-modal-close]').forEach((btn) => {
-                    if (btn.dataset.bound === 'true') {
-                        return;
-                    }
-                    btn.dataset.bound = 'true';
-                    btn.addEventListener('click', () => toggle(false));
-                });
-
-                if (!priceModalSetup.backdropBound) {
-                    window.addEventListener('click', (event) => {
+                window.addEventListener('click', (event) => {
+                    document.querySelectorAll('.fixed[id$="Modal"]').forEach(modal => {
                         if (event.target === modal) {
-                            toggle(false);
+                            toggleModal(modal, false);
                         }
                     });
-                    priceModalSetup.backdropBound = true;
-                }
-            };
+                });
 
-            setupPriceModal();
+                const syncBrandForm = () => {
+                    const form = document.getElementById('brandEditForm');
+                    const selector = document.getElementById('brandEditSelector');
+                    if (!form || !selector) return;
+                    const selected = selector.selectedOptions[0];
+                    if (!selected) return;
+                    form.action = `${form.dataset.actionBase}/${selected.value}`;
+                    form.querySelector('[name="brand_name"]').value = selected.textContent.trim();
+                };
 
-            document.body.addEventListener('htmx:afterSwap', (event) => {
-                if (event.target.id === 'product-table-container') {
-                    setupPriceModal();
-                }
-            });
+                const syncCategoryForm = () => {
+                    const form = document.getElementById('categoryEditForm');
+                    const selector = document.getElementById('categoryEditSelector');
+                    if (!form || !selector) return;
+                    const selected = selector.selectedOptions[0];
+                    if (!selected) return;
+                    form.action = `${form.dataset.actionBase}/${selected.value}`;
+                    form.querySelector('[name="category_name"]').value = selected.textContent.trim();
+                };
 
-            // Fix for pagination links to maintain filters
-            document.addEventListener('click', function (e) {
-                if (e.target.matches('.pagination a')) {
-                    e.preventDefault();
-                    const url = e.target.href;
+                document.getElementById('brandEditSelector')?.addEventListener('change', syncBrandForm);
+                document.getElementById('categoryEditSelector')?.addEventListener('change', syncCategoryForm);
 
-                    // Get current filter values
-                    const search = document.querySelector('[name="search"]').value;
-                    const category = document.querySelector('[name="category"]').value;
-                    const brand = document.querySelector('[name="brand"]').value;
-                    const condition = document.querySelector('[name="condition"]').value;
-                    const supplier = document.querySelector('[name="supplier"]').value;
+                // ADDED: Price modal setup
+                let priceModalSetup = {
+                    backdropBound: false,
+                };
 
-                    // Build URL with filters
-                    const urlObj = new URL(url);
-                    if (search) urlObj.searchParams.set('search', search);
-                    if (category) urlObj.searchParams.set('category', category);
-                    if (brand) urlObj.searchParams.set('brand', brand);
-                    if (condition) urlObj.searchParams.set('condition', condition);
-                    if (supplier) urlObj.searchParams.set('supplier', supplier);
+                const setupPriceModal = () => {
+                    const modal = document.getElementById('priceEditModal');
+                    const form = document.getElementById('priceEditForm');
+                    const priceInput = form?.querySelector('[name="price"]');
+                    const meta = document.getElementById('priceEditMeta');
 
-                    // Make HTMX request
-                    htmx.ajax('GET', urlObj.toString(), {
-                        target: '#product-table-container',
-                        swap: 'innerHTML'
+                    const toggle = (show) => {
+                        if (!modal) return;
+                        if (show) {
+                            modal.classList.remove('hidden');
+                            modal.classList.add('flex');
+                        } else {
+                            modal.classList.add('hidden');
+                            modal.classList.remove('flex');
+                        }
+                    };
+
+                    document.querySelectorAll('.edit-price-btn').forEach((btn) => {
+                        if (btn.dataset.bound === 'true') {
+                            return;
+                        }
+                        btn.dataset.bound = 'true';
+                        btn.addEventListener('click', () => {
+                            const payload = JSON.parse(btn.dataset.product || '{}');
+                            form.action = btn.dataset.action;
+                            priceInput.value = payload.price ?? 0;
+                            meta.textContent = `${payload.product_name ?? ''} • ${payload.brand_name ?? ''} • ${payload.category_name ?? ''}`;
+                            toggle(true);
+                        });
                     });
-                }
-            });
-        });
-    </script>
 
-    @if (session('success'))
-        <script>
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: '{{ session('success') }}',
-                confirmButtonColor: '#4F46E5'
+                    document.querySelectorAll('[data-price-modal-close]').forEach((btn) => {
+                        if (btn.dataset.bound === 'true') {
+                            return;
+                        }
+                        btn.dataset.bound = 'true';
+                        btn.addEventListener('click', () => toggle(false));
+                    });
+
+                    if (!priceModalSetup.backdropBound) {
+                        window.addEventListener('click', (event) => {
+                            if (event.target === modal) {
+                                toggle(false);
+                            }
+                        });
+                        priceModalSetup.backdropBound = true;
+                    }
+                };
+
+                setupPriceModal();
+
+                document.body.addEventListener('htmx:afterSwap', (event) => {
+                    if (event.target.id === 'product-table-container') {
+                        setupPriceModal();
+                    }
+                });
+
+                // Fix for pagination links to maintain filters
+                document.addEventListener('click', function (e) {
+                    if (e.target.matches('.pagination a')) {
+                        e.preventDefault();
+                        const url = e.target.href;
+
+                        // Get current filter values
+                        const search = document.querySelector('[name="search"]').value;
+                        const category = document.querySelector('[name="category"]').value;
+                        const brand = document.querySelector('[name="brand"]').value;
+                        const condition = document.querySelector('[name="condition"]').value;
+                        const supplier = document.querySelector('[name="supplier"]').value;
+
+                        // Build URL with filters
+                        const urlObj = new URL(url);
+                        if (search) urlObj.searchParams.set('search', search);
+                        if (category) urlObj.searchParams.set('category', category);
+                        if (brand) urlObj.searchParams.set('brand', brand);
+                        if (condition) urlObj.searchParams.set('condition', condition);
+                        if (supplier) urlObj.searchParams.set('supplier', supplier);
+
+                        // Make HTMX request
+                        htmx.ajax('GET', urlObj.toString(), {
+                            target: '#product-table-container',
+                            swap: 'innerHTML'
+                        });
+                    }
+                });
             });
         </script>
-    @endif
 
-    @if (session('error'))
-        <script>
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: '{{ session('error') }}',
-                confirmButtonColor: '#E11D48'
-            });
-        </script>
-    @endif
+        @if (session('success'))
+            <script>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                    confirmButtonColor: '#4F46E5'
+                });
+            </script>
+        @endif
 
+        @if (session('error'))
+            <script>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: '{{ session('error') }}',
+                    confirmButtonColor: '#E11D48'
+                });
+            </script>
+        @endif
+    @endpush
 @endsection

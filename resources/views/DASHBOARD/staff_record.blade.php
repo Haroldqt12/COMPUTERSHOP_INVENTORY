@@ -144,7 +144,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span
                                         class="px-3 py-1 inline-flex text-xs font-semibold rounded-full
-                                                                {{ $employee->role == 'Staff' ? 'bg-purple-100 text-purple-800' : ($employee->role == 'Technical' ? 'bg-pink-100 text-pink-800' : ($employee->role == 'Cashier' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800')) }}">
+                                                                                            {{ $employee->role == 'Staff' ? 'bg-purple-100 text-purple-800' : ($employee->role == 'Technical' ? 'bg-pink-100 text-pink-800' : ($employee->role == 'Cashier' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800')) }}">
                                         {{ $employee->role }}
                                     </span>
                                 </td>
@@ -152,7 +152,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span
                                         class="px-3 py-1 inline-flex text-xs font-semibold rounded-full
-                                                                {{ strtolower($employee->gender) == 'male' ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800' }}">
+                                                                                            {{ strtolower($employee->gender) == 'male' ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800' }}">
                                         {{ ucfirst($employee->gender) }}
                                     </span>
                                 </td>
@@ -274,190 +274,196 @@
             </div>
         @endforeach
     </div>
+    @push('scripts')
+        <script>
+            // HTMX Performance Configuration
+            htmx.config.timeout = 10000;
+            htmx.config.defaultSwapDelay = 100;
+            htmx.config.defaultSettleDelay = 100;
 
-    <script>
-        // Simple client-side search & filter
-        const searchInput = document.getElementById('searchInput');
-        const roleFilter = document.getElementById('roleFilter');
+            // Simple client-side search & filter
+            const searchInput = document.getElementById('searchInput');
+            const roleFilter = document.getElementById('roleFilter');
 
-        if (searchInput) searchInput.addEventListener('input', filterEmployees);
-        if (roleFilter) roleFilter.addEventListener('change', filterEmployees);
+            if (searchInput) searchInput.addEventListener('input', filterEmployees);
+            if (roleFilter) roleFilter.addEventListener('change', filterEmployees);
 
-        function filterEmployees() {
-            const search = searchInput.value.toLowerCase();
-            const role = roleFilter.value;
-            const rows = document.querySelectorAll('#employeesTable tr');
+            function filterEmployees() {
+                const search = searchInput.value.toLowerCase();
+                const role = roleFilter.value;
+                const rows = document.querySelectorAll('#employeesTable tr');
 
-            rows.forEach(row => {
-                if (row.cells.length === 1) return; // skip empty row message
+                rows.forEach(row => {
+                    if (row.cells.length === 1) return; // skip empty row message
 
-                const name = row.cells[0].textContent.toLowerCase();
-                const address = row.cells[1].textContent.toLowerCase();
-                const rowRole = row.cells[3].textContent.trim();
+                    const name = row.cells[0].textContent.toLowerCase();
+                    const address = row.cells[1].textContent.toLowerCase();
+                    const rowRole = row.cells[3].textContent.trim();
 
-                const matchesSearch = name.includes(search) || address.includes(search);
-                const matchesRole = !role || rowRole === role;
+                    const matchesSearch = name.includes(search) || address.includes(search);
+                    const matchesRole = !role || rowRole === role;
 
-                row.style.display = (matchesSearch && matchesRole) ? '' : 'none';
-            });
-        }
+                    row.style.display = (matchesSearch && matchesRole) ? '' : 'none';
+                });
+            }
 
-        // Modal functions
-        function openEditModal(employeeId) {
-            document.getElementById('editModal').classList.remove('hidden');
-            document.getElementById('editModal').classList.add('flex');
+            // Modal functions
+            function openEditModal(employeeId) {
+                document.getElementById('editModal').classList.remove('hidden');
+                document.getElementById('editModal').classList.add('flex');
 
-            // Find the employee data from hidden templates
-            const employeeTemplate = document.querySelector(`.employee-template[data-id="${employeeId}"]`);
+                // Find the employee data from hidden templates
+                const employeeTemplate = document.querySelector(`.employee-template[data-id="${employeeId}"]`);
 
-            if (employeeTemplate) {
-                // Get all employee data from data attributes
-                const employeeData = {
-                    id: employeeTemplate.getAttribute('data-id'),
-                    first_name: employeeTemplate.getAttribute('data-first-name'),
-                    last_name: employeeTemplate.getAttribute('data-last-name'),
-                    street: employeeTemplate.getAttribute('data-street'),
-                    barangay: employeeTemplate.getAttribute('data-barangay'),
-                    city: employeeTemplate.getAttribute('data-city'),
-                    phone_number: employeeTemplate.getAttribute('data-phone'),
-                    gender: employeeTemplate.getAttribute('data-gender'),
-                    role: employeeTemplate.getAttribute('data-role')
-                };
+                if (employeeTemplate) {
+                    // Get all employee data from data attributes
+                    const employeeData = {
+                        id: employeeTemplate.getAttribute('data-id'),
+                        first_name: employeeTemplate.getAttribute('data-first-name'),
+                        last_name: employeeTemplate.getAttribute('data-last-name'),
+                        street: employeeTemplate.getAttribute('data-street'),
+                        barangay: employeeTemplate.getAttribute('data-barangay'),
+                        city: employeeTemplate.getAttribute('data-city'),
+                        phone_number: employeeTemplate.getAttribute('data-phone'),
+                        gender: employeeTemplate.getAttribute('data-gender'),
+                        role: employeeTemplate.getAttribute('data-role')
+                    };
 
-                // Create the edit form HTML
-                const formHTML = `
-                            <form action="/employees/${employeeData.id}" method="POST" class="space-y-6">
-                                @csrf
-                                @method('PUT')
+                    // Create the edit form HTML
+                    const formHTML = `
+                                            <form action="/employees/${employeeData.id}" method="POST" class="space-y-6">
+                                                @csrf
+                                                @method('PUT')
 
-                                <div class="grid md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label for="edit_first_name" class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
-                                        <input type="text" id="edit_first_name" name="first_name" value="${employeeData.first_name || ''}" 
-                                            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
-                                    </div>
+                                                <div class="grid md:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label for="edit_first_name" class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                                                        <input type="text" id="edit_first_name" name="first_name" value="${employeeData.first_name || ''}" 
+                                                            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                                    </div>
 
-                                    <div>
-                                        <label for="edit_last_name" class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
-                                        <input type="text" id="edit_last_name" name="last_name" value="${employeeData.last_name || ''}" 
-                                            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
-                                    </div>
-                                </div>
+                                                    <div>
+                                                        <label for="edit_last_name" class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                                                        <input type="text" id="edit_last_name" name="last_name" value="${employeeData.last_name || ''}" 
+                                                            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                                    </div>
+                                                </div>
 
-                                <div class="space-y-4">
-                                    <h4 class="text-sm font-semibold text-gray-800 border-b border-gray-200 pb-2">Address Information</h4>
-                                    <div class="grid md:grid-cols-3 gap-4">
-                                        <div>
-                                            <label for="edit_street" class="block text-sm font-medium text-gray-700 mb-1">Street *</label>
-                                            <input type="text" id="edit_street" name="street" value="${employeeData.street || ''}" 
-                                                class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
-                                        </div>
+                                                <div class="space-y-4">
+                                                    <h4 class="text-sm font-semibold text-gray-800 border-b border-gray-200 pb-2">Address Information</h4>
+                                                    <div class="grid md:grid-cols-3 gap-4">
+                                                        <div>
+                                                            <label for="edit_street" class="block text-sm font-medium text-gray-700 mb-1">Street *</label>
+                                                            <input type="text" id="edit_street" name="street" value="${employeeData.street || ''}" 
+                                                                class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                                        </div>
 
-                                        <div>
-                                            <label for="edit_barangay" class="block text-sm font-medium text-gray-700 mb-1">Barangay *</label>
-                                            <input type="text" id="edit_barangay" name="barangay" value="${employeeData.barangay || ''}" 
-                                                class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
-                                        </div>
+                                                        <div>
+                                                            <label for="edit_barangay" class="block text-sm font-medium text-gray-700 mb-1">Barangay *</label>
+                                                            <input type="text" id="edit_barangay" name="barangay" value="${employeeData.barangay || ''}" 
+                                                                class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                                        </div>
 
-                                        <div>
-                                            <label for="edit_city" class="block text-sm font-medium text-gray-700 mb-1">City *</label>
-                                            <input type="text" id="edit_city" name="city" value="${employeeData.city || ''}" 
-                                                class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
-                                        </div>
-                                    </div>
-                                </div>
+                                                        <div>
+                                                            <label for="edit_city" class="block text-sm font-medium text-gray-700 mb-1">City *</label>
+                                                            <input type="text" id="edit_city" name="city" value="${employeeData.city || ''}" 
+                                                                class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                                        </div>
+                                                    </div>
+                                                </div>
 
-                                <div class="grid md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label for="edit_phone_number" class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
-                                        <input type="tel" id="edit_phone_number" name="phone_number" value="${employeeData.phone_number || ''}" 
-                                            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
-                                    </div>
+                                                <div class="grid md:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label for="edit_phone_number" class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                                                        <input type="tel" id="edit_phone_number" name="phone_number" value="${employeeData.phone_number || ''}" 
+                                                            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                                    </div>
 
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Gender *</label>
-                                        <div class="flex gap-4">
-                                            <label class="inline-flex items-center">
-                                                <input type="radio" name="gender" value="male" 
-                                                    ${employeeData.gender === 'male' ? 'checked' : ''} 
-                                                    class="text-indigo-600 focus:ring-indigo-500">
-                                                <span class="ml-2 text-gray-700">Male</span>
-                                            </label>
-                                            <label class="inline-flex items-center">
-                                                <input type="radio" name="gender" value="female" 
-                                                    ${employeeData.gender === 'female' ? 'checked' : ''} 
-                                                    class="text-indigo-600 focus:ring-indigo-500">
-                                                <span class="ml-2 text-gray-700">Female</span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
+                                                    <div>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-2">Gender *</label>
+                                                        <div class="flex gap-4">
+                                                            <label class="inline-flex items-center">
+                                                                <input type="radio" name="gender" value="male" 
+                                                                    ${employeeData.gender === 'male' ? 'checked' : ''} 
+                                                                    class="text-indigo-600 focus:ring-indigo-500">
+                                                                <span class="ml-2 text-gray-700">Male</span>
+                                                            </label>
+                                                            <label class="inline-flex items-center">
+                                                                <input type="radio" name="gender" value="female" 
+                                                                    ${employeeData.gender === 'female' ? 'checked' : ''} 
+                                                                    class="text-indigo-600 focus:ring-indigo-500">
+                                                                <span class="ml-2 text-gray-700">Female</span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
 
-                                <div>
-                                    <label for="edit_role" class="block text-sm font-medium text-gray-700 mb-1">Role *</label>
-                                    <select id="edit_role" name="role" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
-                                        <option value="">Select Role</option>
-                                        <option value="Staff" ${employeeData.role === 'Staff' ? 'selected' : ''}>Staff</option>
-                                        <option value="Assistant" ${employeeData.role === 'Assistant' ? 'selected' : ''}>Assistant</option>
-                                        <option value="Technical" ${employeeData.role === 'Technical' ? 'selected' : ''}>Technical</option>
-                                        <option value="Cashier" ${employeeData.role === 'Cashier' ? 'selected' : ''}>Cashier</option>
-                                    </select>
-                                </div>
+                                                <div>
+                                                    <label for="edit_role" class="block text-sm font-medium text-gray-700 mb-1">Role *</label>
+                                                    <select id="edit_role" name="role" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                                        <option value="">Select Role</option>
+                                                        <option value="Staff" ${employeeData.role === 'Staff' ? 'selected' : ''}>Staff</option>
+                                                        <option value="Assistant" ${employeeData.role === 'Assistant' ? 'selected' : ''}>Assistant</option>
+                                                        <option value="Technical" ${employeeData.role === 'Technical' ? 'selected' : ''}>Technical</option>
+                                                        <option value="Cashier" ${employeeData.role === 'Cashier' ? 'selected' : ''}>Cashier</option>
+                                                    </select>
+                                                </div>
 
-                                <div class="flex justify-end gap-4 pt-6 border-t border-gray-200">
-                                    <button type="button" onclick="closeEditModal()" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
-                                        Cancel
-                                    </button>
-                                    <button type="submit" class="px-8 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
-                                        Update Employee
-                                    </button>
-                                </div>
-                            </form>
-                        `;
+                                                <div class="flex justify-end gap-4 pt-6 border-t border-gray-200">
+                                                    <button type="button" onclick="closeEditModal()" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                                        Cancel
+                                                    </button>
+                                                    <button type="submit" class="px-8 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                                                        Update Employee
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        `;
 
-                // Insert the form into the modal
-                document.getElementById('modalContent').innerHTML = formHTML;
+                    // Insert the form into the modal
+                    document.getElementById('modalContent').innerHTML = formHTML;
 
-                // Trigger animation
+                    // Trigger animation
+                    setTimeout(() => {
+                        document.getElementById('editModal').querySelector('.max-w-2xl').classList.remove('scale-95');
+                        document.getElementById('editModal').querySelector('.max-w-2xl').classList.add('scale-100');
+                    }, 10);
+                } else {
+                    document.getElementById('modalContent').innerHTML = `
+                                            <div class="p-6 text-center text-red-600">
+                                                <p>Error loading employee data. Please try again.</p>
+                                                <button onclick="closeEditModal()" class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                                                    Close
+                                                </button>
+                                            </div>
+                                        `;
+                }
+            }
+
+            function closeEditModal() {
+                const modalContent = document.getElementById('editModal').querySelector('.max-w-2xl');
+                modalContent.classList.remove('scale-100');
+                modalContent.classList.add('scale-95');
+
                 setTimeout(() => {
-                    document.getElementById('editModal').querySelector('.max-w-2xl').classList.remove('scale-95');
-                    document.getElementById('editModal').querySelector('.max-w-2xl').classList.add('scale-100');
-                }, 10);
-            } else {
-                document.getElementById('modalContent').innerHTML = `
-                            <div class="p-6 text-center text-red-600">
-                                <p>Error loading employee data. Please try again.</p>
-                                <button onclick="closeEditModal()" class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-                                    Close
-                                </button>
-                            </div>
-                        `;
+                    document.getElementById('editModal').classList.add('hidden');
+                    document.getElementById('editModal').classList.remove('flex');
+                }, 200);
             }
-        }
 
-        function closeEditModal() {
-            const modalContent = document.getElementById('editModal').querySelector('.max-w-2xl');
-            modalContent.classList.remove('scale-100');
-            modalContent.classList.add('scale-95');
+            // Close modal when clicking outside
+            document.getElementById('editModal').addEventListener('click', function (e) {
+                if (e.target === this) {
+                    closeEditModal();
+                }
+            });
 
-            setTimeout(() => {
-                document.getElementById('editModal').classList.add('hidden');
-                document.getElementById('editModal').classList.remove('flex');
-            }, 200);
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('editModal').addEventListener('click', function (e) {
-            if (e.target === this) {
-                closeEditModal();
-            }
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') {
-                closeEditModal();
-            }
-        });
-    </script>
+            // Close modal with Escape key
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    closeEditModal();
+                }
+            });
+        </script>
+    @endpush
 @endsection

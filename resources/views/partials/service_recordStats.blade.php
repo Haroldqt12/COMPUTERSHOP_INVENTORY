@@ -12,7 +12,8 @@
             <p class="text-2xl font-bold text-gray-900">{{ number_format($statistics['total']) }}</p>
             @if($startDate && $endDate)
                 <p class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($startDate)->format('M d') }} -
-                    {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}</p>
+                    {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}
+                </p>
             @endif
         </div>
     </div>
@@ -31,7 +32,8 @@
             <p class="text-2xl font-bold text-gray-900">{{ number_format($statistics['pending']) }}</p>
             @if($startDate && $endDate)
                 <p class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($startDate)->format('M d') }} -
-                    {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}</p>
+                    {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}
+                </p>
             @endif
         </div>
     </div>
@@ -49,7 +51,8 @@
             <p class="text-2xl font-bold text-gray-900">{{ number_format($statistics['completed']) }}</p>
             @if($startDate && $endDate)
                 <p class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($startDate)->format('M d') }} -
-                    {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}</p>
+                    {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}
+                </p>
             @endif
         </div>
     </div>
@@ -68,7 +71,8 @@
             <p class="text-2xl font-bold text-gray-900">{{ number_format($statistics['in_progress']) }}</p>
             @if($startDate && $endDate)
                 <p class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($startDate)->format('M d') }} -
-                    {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}</p>
+                    {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}
+                </p>
             @endif
         </div>
     </div>
@@ -87,7 +91,8 @@
             <p class="text-2xl font-bold text-gray-900">{{ number_format($statistics['on_hold']) }}</p>
             @if($startDate && $endDate)
                 <p class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($startDate)->format('M d') }} -
-                    {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}</p>
+                    {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}
+                </p>
             @endif
         </div>
     </div>
@@ -108,3 +113,11 @@
         </div>
     </div>
 </div>
+@push('scripts')
+    <script>
+        // HTMX Performance Configuration
+        htmx.config.timeout = 10000;
+        htmx.config.defaultSwapDelay = 100;
+        htmx.config.defaultSettleDelay = 100;
+    </script>
+@endpush

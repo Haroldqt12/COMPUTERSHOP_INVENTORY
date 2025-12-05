@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-      Schema::create('purchase_details', function (Blueprint $table) {
+        Schema::create('purchase_details', function (Blueprint $table) {
             $table->id();
             $table->integer('quantity_ordered');
             $table->decimal('unit_price', 10, 2);
@@ -23,8 +23,13 @@ return new class extends Migration
             $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('cascade');
             $table->foreignId('bundle_id')->nullable()->constrained('bundles')->onDelete('cascade');
             $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('no action');
-            
+
             $table->timestamps();
+
+            // Indexes for faster querying
+            $table->index('status');
+            $table->index('created_at');
+            $table->index('supplier_id');
         });
     }
 

@@ -1,0 +1,84 @@
+version: "3.8"
+services:
+    laravel.test:
+        build:
+            context: ./vendor/laravel/sail/runtimes/8.2
+            dockerfile: Dockerfile
+            args:
+                WWWGROUP: 1000
+        image: sail-8.2/app
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        ports:
+            - "8000:80"
+        environment:
+            WWWUSER: 1000
+            LARAVEL_SAIL: 1
+            XDEBUG_MODE: "off"
+        volumes:
+            - ".:/var/www/html"
+            # Use cached volumes for better performance
+            - /var/www/html/vendor
+            - /var/www/html/node_modules
+        networks:
+            - sail
+        depends_on:
+            mysql:
+                condition: service_healthy
+        # Add resource limits
+        deploy:
+            resources:
+                limits:
+                    memory: 1G
+                reservations:
+                    memory: 512M
+
+    mysql:
+        image: "mysql:8.0"
+        ports:
+            - "33060:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: "password"
+            MYSQL_ROOT_HOST: "%"
+            MYSQL_DATABASE: "vantechdb"
+            MYSQL_USER: "sail"
+            MYSQL_PASSWORD: "password"
+            MYSQL_ALLOW_EMPTY_PASSWORD: 1
+        volumes:
+            - "sail-mysql:/var/lib/mysql"
+            # MySQL performance optimizations
+            - "./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf"
+        networks:
+            - sail
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-ppassword"]
+            retries: 3
+            timeout: 5s
+            interval: 10s
+        # MySQL performance settings
+        command: --default-authentication-plugin=mysql_native_password
+            --innodb-buffer-pool-size=256M
+            --innodb-log-file-size=64M
+            --max-connections=100
+    redis:
+        image: "redis:alpine"
+        ports:
+            - "63790:6379"
+        volumes:
+            - "sail-redis:/data"
+        networks:
+            - sail
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            retries: 3
+            timeout: 3s
+
+networks:
+    sail:
+        driver: bridge
+
+volumes:
+    sail-mysql:
+        driver: local
+    sail-redis:
+        driver: local

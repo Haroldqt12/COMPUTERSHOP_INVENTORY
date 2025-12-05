@@ -206,561 +206,567 @@
 
     <!-- Include Chart.js for charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @push('scripts')
+        <script>
+            // HTMX Performance Configuration
+            htmx.config.timeout = 10000;
+            htmx.config.defaultSwapDelay = 100;
+            htmx.config.defaultSettleDelay = 100;
 
-    <script>
-        // Global variables for charts
-        let salesTrendChart = null;
-        let topProductsChart = null;
+            // Global variables for charts
+            let salesTrendChart = null;
+            let topProductsChart = null;
 
-        // Transaction management variables
-        let allTransactions = [];
-        let filteredTransactions = [];
-        let currentPage = 1;
-        const itemsPerPage = 5;
+            // Transaction management variables
+            let allTransactions = [];
+            let filteredTransactions = [];
+            let currentPage = 1;
+            const itemsPerPage = 5;
 
-        // API endpoints
-        const API_ENDPOINTS = {
-            salesData: '/api/sales/data',
-            salesSummary: '/api/sales/summary',
-            realTime: '/api/sales/realtime'
-        };
+            // API endpoints
+            const API_ENDPOINTS = {
+                salesData: '/api/sales/data',
+                salesSummary: '/api/sales/summary',
+                realTime: '/api/sales/realtime'
+            };
 
-        // Initialize dashboard
-        document.addEventListener('DOMContentLoaded', function () {
-            initializeDashboard();
-            setupEventListeners();
+            // Initialize dashboard
+            document.addEventListener('DOMContentLoaded', function () {
+                initializeDashboard();
+                setupEventListeners();
 
-            // Load initial data
-            loadSalesData();
-
-            // Set up real-time updates every 30 seconds
-            setInterval(updateRealTimeData, 30000);
-        });
-
-        function initializeDashboard() {
-            // Set default dates (current month)
-            const now = new Date();
-            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-            document.getElementById('startDate').value = formatDate(firstDay);
-            document.getElementById('endDate').value = formatDate(lastDay);
-
-            // Initialize charts with empty data
-            initializeCharts();
-        }
-
-        function setupEventListeners() {
-            document.getElementById('filterBtn').addEventListener('click', loadSalesData);
-            document.getElementById('clearBtn').addEventListener('click', clearFilters);
-            document.getElementById('refreshBtn').addEventListener('click', () => {
+                // Load initial data
                 loadSalesData();
-                updateRealTimeData();
+
+                // Set up real-time updates every 30 seconds
+                setInterval(updateRealTimeData, 30000);
             });
 
-            // Auto-apply filter when dates change
-            document.getElementById('startDate').addEventListener('change', loadSalesData);
-            document.getElementById('endDate').addEventListener('change', loadSalesData);
+            function initializeDashboard() {
+                // Set default dates (current month)
+                const now = new Date();
+                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-            // Transaction search and sort listeners
-            document.getElementById('transactionSearch').addEventListener('input', filterAndDisplayTransactions);
-            document.getElementById('sortTransactions').addEventListener('change', filterAndDisplayTransactions);
-            document.getElementById('prevPage').addEventListener('click', () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    displayTransactions();
-                }
-            });
-            document.getElementById('nextPage').addEventListener('click', () => {
-                const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    displayTransactions();
-                }
-            });
-        }
+                document.getElementById('startDate').value = formatDate(firstDay);
+                document.getElementById('endDate').value = formatDate(lastDay);
 
-        function initializeCharts() {
-            // Sales Trend Chart
-            const salesCtx = document.getElementById('salesTrendChart').getContext('2d');
-            salesTrendChart = new Chart(salesCtx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Daily Sales',
-                        data: [],
-                        borderColor: 'rgb(59, 130, 246)',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: 'rgb(59, 130, 246)',
-                        pointBorderColor: 'white',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            left: 10,
-                            right: 10,
-                            top: 10,
-                            bottom: 10
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.1)',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                callback: function (value) {
-                                    return '₱' + value.toLocaleString();
-                                },
-                                font: {
-                                    size: 11
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                font: {
-                                    size: 11
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleColor: 'white',
-                            bodyColor: 'white',
+                // Initialize charts with empty data
+                initializeCharts();
+            }
+
+            function setupEventListeners() {
+                document.getElementById('filterBtn').addEventListener('click', loadSalesData);
+                document.getElementById('clearBtn').addEventListener('click', clearFilters);
+                document.getElementById('refreshBtn').addEventListener('click', () => {
+                    loadSalesData();
+                    updateRealTimeData();
+                });
+
+                // Auto-apply filter when dates change
+                document.getElementById('startDate').addEventListener('change', loadSalesData);
+                document.getElementById('endDate').addEventListener('change', loadSalesData);
+
+                // Transaction search and sort listeners
+                document.getElementById('transactionSearch').addEventListener('input', filterAndDisplayTransactions);
+                document.getElementById('sortTransactions').addEventListener('change', filterAndDisplayTransactions);
+                document.getElementById('prevPage').addEventListener('click', () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        displayTransactions();
+                    }
+                });
+                document.getElementById('nextPage').addEventListener('click', () => {
+                    const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        displayTransactions();
+                    }
+                });
+            }
+
+            function initializeCharts() {
+                // Sales Trend Chart
+                const salesCtx = document.getElementById('salesTrendChart').getContext('2d');
+                salesTrendChart = new Chart(salesCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Daily Sales',
+                            data: [],
                             borderColor: 'rgb(59, 130, 246)',
-                            borderWidth: 1,
-                            callbacks: {
-                                label: function (context) {
-                                    return `Sales: ₱${context.parsed.y.toLocaleString()}`;
-                                }
-                            }
-                        }
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: 'rgb(59, 130, 246)',
+                            pointBorderColor: 'white',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }]
                     },
-                    animation: {
-                        duration: 1000,
-                        easing: 'easeOutQuart'
-                    },
-                    interaction: {
-                        intersect: false,
-                        mode: 'index'
-                    }
-                }
-            });
-
-            // Top Products Chart
-            const topCtx = document.getElementById('topProductsChart').getContext('2d');
-            topProductsChart = new Chart(topCtx, {
-                type: 'bar',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Quantity Sold',
-                        data: [],
-                        backgroundColor: [
-                            'rgba(59, 130, 246, 0.8)',
-                            'rgba(16, 185, 129, 0.8)',
-                            'rgba(139, 92, 246, 0.8)',
-                            'rgba(245, 101, 101, 0.8)',
-                            'rgba(251, 191, 36, 0.8)',
-                            'rgba(236, 72, 153, 0.8)',
-                            'rgba(34, 197, 94, 0.8)',
-                            'rgba(168, 85, 247, 0.8)'
-                        ],
-                        borderColor: [
-                            'rgb(59, 130, 246)',
-                            'rgb(16, 185, 129)',
-                            'rgb(139, 92, 246)',
-                            'rgb(245, 101, 101)',
-                            'rgb(251, 191, 36)',
-                            'rgb(236, 72, 153)',
-                            'rgb(34, 197, 94)',
-                            'rgb(168, 85, 247)'
-                        ],
-                        borderWidth: 1,
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    indexAxis: 'y', // Horizontal bar chart
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            left: 10,
-                            right: 20
-                        }
-                    },
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            grid: {
-                                display: true,
-                                color: 'rgba(0, 0, 0, 0.1)'
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        layout: {
+                            padding: {
+                                left: 10,
+                                right: 10,
+                                top: 10,
+                                bottom: 10
                             }
                         },
-                        y: {
-                            grid: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    callback: function (value) {
+                                        return '₱' + value.toLocaleString();
+                                    },
+                                    font: {
+                                        size: 11
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    font: {
+                                        size: 11
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
                                 display: false
                             },
-                            ticks: {
-                                font: {
-                                    size: 11
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleColor: 'white',
+                                bodyColor: 'white',
+                                borderColor: 'rgb(59, 130, 246)',
+                                borderWidth: 1,
+                                callbacks: {
+                                    label: function (context) {
+                                        return `Sales: ₱${context.parsed.y.toLocaleString()}`;
+                                    }
                                 }
                             }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
                         },
-                        tooltip: {
-                            callbacks: {
-                                title: function (context) {
-                                    // Show full product name in tooltip if available
-                                    const dataIndex = context[0].dataIndex;
-                                    return topProductsChart.data.datasets[0].fullNames?.[dataIndex] || context[0].label;
+                        animation: {
+                            duration: 1000,
+                            easing: 'easeOutQuart'
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        }
+                    }
+                });
+
+                // Top Products Chart
+                const topCtx = document.getElementById('topProductsChart').getContext('2d');
+                topProductsChart = new Chart(topCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Quantity Sold',
+                            data: [],
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.8)',
+                                'rgba(16, 185, 129, 0.8)',
+                                'rgba(139, 92, 246, 0.8)',
+                                'rgba(245, 101, 101, 0.8)',
+                                'rgba(251, 191, 36, 0.8)',
+                                'rgba(236, 72, 153, 0.8)',
+                                'rgba(34, 197, 94, 0.8)',
+                                'rgba(168, 85, 247, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgb(59, 130, 246)',
+                                'rgb(16, 185, 129)',
+                                'rgb(139, 92, 246)',
+                                'rgb(245, 101, 101)',
+                                'rgb(251, 191, 36)',
+                                'rgb(236, 72, 153)',
+                                'rgb(34, 197, 94)',
+                                'rgb(168, 85, 247)'
+                            ],
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y', // Horizontal bar chart
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        layout: {
+                            padding: {
+                                left: 10,
+                                right: 20
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                grid: {
+                                    display: true,
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    display: false
                                 },
-                                label: function (context) {
-                                    return `Quantity: ${context.parsed.x} units`;
+                                ticks: {
+                                    font: {
+                                        size: 11
+                                    }
                                 }
                             }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    title: function (context) {
+                                        // Show full product name in tooltip if available
+                                        const dataIndex = context[0].dataIndex;
+                                        return topProductsChart.data.datasets[0].fullNames?.[dataIndex] || context[0].label;
+                                    },
+                                    label: function (context) {
+                                        return `Quantity: ${context.parsed.x} units`;
+                                    }
+                                }
+                            }
+                        },
+                        animation: {
+                            duration: 1000,
+                            easing: 'easeOutQuart'
                         }
-                    },
-                    animation: {
-                        duration: 1000,
-                        easing: 'easeOutQuart'
                     }
-                }
-            });
-        }
-
-        async function loadSalesData() {
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
-
-            if (!startDate || !endDate) {
-                showError('Please select both start and end dates.');
-                return;
+                });
             }
 
-            showLoading(true);
-            hideError();
+            async function loadSalesData() {
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
 
-            try {
-                const params = new URLSearchParams({
-                    start_date: startDate,
-                    end_date: endDate
-                });
-
-                const response = await fetch(`${API_ENDPOINTS.salesData}?${params}`);
-                const result = await response.json();
-
-                if (!response.ok || !result.success) {
-                    throw new Error(result.message || 'Failed to fetch sales data');
+                if (!startDate || !endDate) {
+                    showError('Please select both start and end dates.');
+                    return;
                 }
 
-                updateDashboard(result.data);
-                updateDateRangeDisplay(startDate, endDate);
-                updateLastUpdatedTime();
+                showLoading(true);
+                hideError();
 
-            } catch (error) {
-                console.error('Error loading sales data:', error);
-                showError('Error loading sales data: ' + error.message);
+                try {
+                    const params = new URLSearchParams({
+                        start_date: startDate,
+                        end_date: endDate
+                    });
 
-                // Show fallback empty state
-                updateDashboard({
-                    total_good_cost: 0,
-                    total_orders: 0,
-                    avg_order_value: 0,
-                    revenue: 0,
-                    profit: 0,
-                    sales_trend: [],
-                    top_products: [],
-                    recent_transactions: []
-                });
-            } finally {
-                showLoading(false);
-            }
-        }
+                    const response = await fetch(`${API_ENDPOINTS.salesData}?${params}`);
+                    const result = await response.json();
 
-        async function updateRealTimeData() {
-            try {
-                const response = await fetch(API_ENDPOINTS.realTime);
-                const result = await response.json();
+                    if (!response.ok || !result.success) {
+                        throw new Error(result.message || 'Failed to fetch sales data');
+                    }
 
-                if (response.ok && result.success) {
-                    // Update today's metrics (could add small indicators)
+                    updateDashboard(result.data);
+                    updateDateRangeDisplay(startDate, endDate);
                     updateLastUpdatedTime();
+
+                } catch (error) {
+                    console.error('Error loading sales data:', error);
+                    showError('Error loading sales data: ' + error.message);
+
+                    // Show fallback empty state
+                    updateDashboard({
+                        total_good_cost: 0,
+                        total_orders: 0,
+                        avg_order_value: 0,
+                        revenue: 0,
+                        profit: 0,
+                        sales_trend: [],
+                        top_products: [],
+                        recent_transactions: []
+                    });
+                } finally {
+                    showLoading(false);
                 }
-            } catch (error) {
-                console.error('Error updating real-time data:', error);
             }
-        }
 
-        function updateDashboard(data) {
-            // Update metric cards
-            updateMetrics(data);
+            async function updateRealTimeData() {
+                try {
+                    const response = await fetch(API_ENDPOINTS.realTime);
+                    const result = await response.json();
 
-            // Update charts
-            updateSalesTrendChart(data.sales_trend);
-            updateTopProductsChart(data.top_products);
-
-            // Update transactions table
-            updateTransactionsTable(data.recent_transactions);
-        }
-
-        function updateMetrics(data) {
-            document.getElementById('totalGoodCost').textContent = formatCurrency(data.total_good_cost || 0);
-            document.getElementById('totalOrders').textContent = (data.total_orders || 0).toLocaleString();
-            document.getElementById('avgOrderValue').textContent = formatCurrency(data.avg_order_value || 0);
-            document.getElementById('revenue').textContent = formatCurrency(data.revenue || 0);
-            document.getElementById('profit').textContent = formatCurrency(data.profit || 0);
-        }
-
-        function updateSalesTrendChart(salesTrend) {
-            if (!salesTrend || salesTrend.length === 0) {
-                salesTrendChart.data.labels = ['No data'];
-                salesTrendChart.data.datasets[0].data = [0];
-            } else {
-                // Limit to reasonable number of data points for better performance
-                const maxDataPoints = 30;
-                const limitedTrend = salesTrend.length > maxDataPoints
-                    ? salesTrend.slice(-maxDataPoints)
-                    : salesTrend;
-
-                const labels = limitedTrend.map(item => formatChartDate(item.date));
-                const data = limitedTrend.map(item => item.sales);
-
-                salesTrendChart.data.labels = labels;
-                salesTrendChart.data.datasets[0].data = data;
+                    if (response.ok && result.success) {
+                        // Update today's metrics (could add small indicators)
+                        updateLastUpdatedTime();
+                    }
+                } catch (error) {
+                    console.error('Error updating real-time data:', error);
+                }
             }
-            salesTrendChart.update('active');
-        }
 
-        function updateTopProductsChart(topProducts) {
-            if (!topProducts || topProducts.length === 0) {
-                topProductsChart.data.labels = ['No products'];
-                topProductsChart.data.datasets[0].data = [0];
-                topProductsChart.data.datasets[0].fullNames = ['No products'];
-            } else {
-                // Limit to maximum 8 products for optimal display
-                const limitedProducts = topProducts.slice(0, 8);
-                const labels = limitedProducts.map(item => item.product_name);
-                const data = limitedProducts.map(item => item.quantity);
-                const fullNames = limitedProducts.map(item => item.full_name || item.product_name);
+            function updateDashboard(data) {
+                // Update metric cards
+                updateMetrics(data);
 
-                topProductsChart.data.labels = labels;
-                topProductsChart.data.datasets[0].data = data;
-                topProductsChart.data.datasets[0].fullNames = fullNames; // Store full names for tooltips
+                // Update charts
+                updateSalesTrendChart(data.sales_trend);
+                updateTopProductsChart(data.top_products);
+
+                // Update transactions table
+                updateTransactionsTable(data.recent_transactions);
             }
-            topProductsChart.update('active');
-        }
 
-        function updateTransactionsTable(transactions) {
-            allTransactions = transactions || [];
-            currentPage = 1;
-            filterAndDisplayTransactions();
-        }
+            function updateMetrics(data) {
+                document.getElementById('totalGoodCost').textContent = formatCurrency(data.total_good_cost || 0);
+                document.getElementById('totalOrders').textContent = (data.total_orders || 0).toLocaleString();
+                document.getElementById('avgOrderValue').textContent = formatCurrency(data.avg_order_value || 0);
+                document.getElementById('revenue').textContent = formatCurrency(data.revenue || 0);
+                document.getElementById('profit').textContent = formatCurrency(data.profit || 0);
+            }
 
-        function filterAndDisplayTransactions() {
-            const searchTerm = document.getElementById('transactionSearch').value.toLowerCase();
-            const sortBy = document.getElementById('sortTransactions').value;
+            function updateSalesTrendChart(salesTrend) {
+                if (!salesTrend || salesTrend.length === 0) {
+                    salesTrendChart.data.labels = ['No data'];
+                    salesTrendChart.data.datasets[0].data = [0];
+                } else {
+                    // Limit to reasonable number of data points for better performance
+                    const maxDataPoints = 30;
+                    const limitedTrend = salesTrend.length > maxDataPoints
+                        ? salesTrend.slice(-maxDataPoints)
+                        : salesTrend;
 
-            // Filter transactions based on search term
-            filteredTransactions = allTransactions.filter(transaction => {
-                const searchableText = [
-                    transaction.id.toString(),
-                    transaction.customer_name,
-                    transaction.amount.toString(),
-                    transaction.items,
-                    transaction.date
-                ].join(' ').toLowerCase();
+                    const labels = limitedTrend.map(item => formatChartDate(item.date));
+                    const data = limitedTrend.map(item => item.sales);
 
-                return searchableText.includes(searchTerm);
-            });
+                    salesTrendChart.data.labels = labels;
+                    salesTrendChart.data.datasets[0].data = data;
+                }
+                salesTrendChart.update('active');
+            }
 
-            // Sort transactions
-            filteredTransactions.sort((a, b) => {
-                switch (sortBy) {
-                    case 'date_desc':
-                        return new Date(b.date) - new Date(a.date);
-                    case 'date_asc':
-                        return new Date(a.date) - new Date(b.date);
-                    case 'amount_desc':
-                        return b.amount - a.amount;
-                    case 'amount_asc':
-                        return a.amount - b.amount;
-                    case 'customer':
-                        return a.customer_name.localeCompare(b.customer_name);
+            function updateTopProductsChart(topProducts) {
+                if (!topProducts || topProducts.length === 0) {
+                    topProductsChart.data.labels = ['No products'];
+                    topProductsChart.data.datasets[0].data = [0];
+                    topProductsChart.data.datasets[0].fullNames = ['No products'];
+                } else {
+                    // Limit to maximum 8 products for optimal display
+                    const limitedProducts = topProducts.slice(0, 8);
+                    const labels = limitedProducts.map(item => item.product_name);
+                    const data = limitedProducts.map(item => item.quantity);
+                    const fullNames = limitedProducts.map(item => item.full_name || item.product_name);
+
+                    topProductsChart.data.labels = labels;
+                    topProductsChart.data.datasets[0].data = data;
+                    topProductsChart.data.datasets[0].fullNames = fullNames; // Store full names for tooltips
+                }
+                topProductsChart.update('active');
+            }
+
+            function updateTransactionsTable(transactions) {
+                allTransactions = transactions || [];
+                currentPage = 1;
+                filterAndDisplayTransactions();
+            }
+
+            function filterAndDisplayTransactions() {
+                const searchTerm = document.getElementById('transactionSearch').value.toLowerCase();
+                const sortBy = document.getElementById('sortTransactions').value;
+
+                // Filter transactions based on search term
+                filteredTransactions = allTransactions.filter(transaction => {
+                    const searchableText = [
+                        transaction.id.toString(),
+                        transaction.customer_name,
+                        transaction.amount.toString(),
+                        transaction.items,
+                        transaction.date
+                    ].join(' ').toLowerCase();
+
+                    return searchableText.includes(searchTerm);
+                });
+
+                // Sort transactions
+                filteredTransactions.sort((a, b) => {
+                    switch (sortBy) {
+                        case 'date_desc':
+                            return new Date(b.date) - new Date(a.date);
+                        case 'date_asc':
+                            return new Date(a.date) - new Date(b.date);
+                        case 'amount_desc':
+                            return b.amount - a.amount;
+                        case 'amount_asc':
+                            return a.amount - b.amount;
+                        case 'customer':
+                            return a.customer_name.localeCompare(b.customer_name);
+                        default:
+                            return 0;
+                    }
+                });
+
+                currentPage = 1; // Reset to first page when filtering
+                displayTransactions();
+            }
+
+            function displayTransactions() {
+                const tbody = document.getElementById('transactionsTable');
+                tbody.innerHTML = '';
+
+                if (filteredTransactions.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">No transactions found</td></tr>';
+                    updatePaginationInfo(0, 0, 0);
+                    return;
+                }
+
+                // Calculate pagination
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = Math.min(startIndex + itemsPerPage, filteredTransactions.length);
+                const pageTransactions = filteredTransactions.slice(startIndex, endIndex);
+
+                // Display transactions
+                pageTransactions.forEach(transaction => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b hover:bg-gray-50';
+
+                    // Parse items to separate product name and quantity
+                    const itemMatch = transaction.items.match(/^(\d+)x\s+(.+)$/);
+                    const quantity = itemMatch ? itemMatch[1] : '1';
+                    const productName = itemMatch ? itemMatch[2] : transaction.items;
+
+                    row.innerHTML = `
+                                                                                        <td class="px-4 py-3">#${transaction.id}</td>
+                                                                                        <td class="px-4 py-3">${transaction.customer_name}</td>
+                                                                                        <td class="px-4 py-3 font-semibold">${formatCurrency(transaction.amount)}</td>
+                                                                                        <td class="px-4 py-3" title="${productName}">${productName.length > 20 ? productName.substring(0, 20) + '...' : productName}</td>
+                                                                                        <td class="px-4 py-3 text-center font-medium">${quantity}</td>
+                                                                                        <td class="px-4 py-3">${transaction.date}</td>
+                                                                                        <td class="px-4 py-3">
+                                                                                            <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(transaction.status)}">
+                                                                                                ${transaction.status}
+                                                                                            </span>
+                                                                                        </td>
+                                                                                    `;
+                    tbody.appendChild(row);
+                });
+
+                updatePaginationInfo(startIndex + 1, endIndex, filteredTransactions.length);
+                updatePaginationControls();
+            }
+
+            function updatePaginationInfo(start, end, total) {
+                document.getElementById('transactionInfo').textContent = `Showing ${start} - ${end} of ${total} transactions`;
+            }
+
+            function updatePaginationControls() {
+                const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+                const prevBtn = document.getElementById('prevPage');
+                const nextBtn = document.getElementById('nextPage');
+                const pageInfo = document.getElementById('pageInfo');
+
+                // Update page info
+                pageInfo.textContent = `Page ${currentPage} of ${Math.max(1, totalPages)}`;
+
+                // Update previous button
+                if (currentPage > 1) {
+                    prevBtn.disabled = false;
+                    prevBtn.className = 'px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 cursor-pointer';
+                } else {
+                    prevBtn.disabled = true;
+                    prevBtn.className = 'px-3 py-1 bg-gray-200 text-gray-400 rounded-lg text-sm cursor-not-allowed';
+                }
+
+                // Update next button
+                if (currentPage < totalPages) {
+                    nextBtn.disabled = false;
+                    nextBtn.className = 'px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 cursor-pointer';
+                } else {
+                    nextBtn.disabled = true;
+                    nextBtn.className = 'px-3 py-1 bg-gray-200 text-gray-400 rounded-lg text-sm cursor-not-allowed';
+                }
+            }
+
+            function clearFilters() {
+                // Reset to current month
+                const now = new Date();
+                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+                document.getElementById('startDate').value = formatDate(firstDay);
+                document.getElementById('endDate').value = formatDate(lastDay);
+
+                loadSalesData();
+            }
+
+            function showLoading(show) {
+                document.getElementById('loadingIndicator').classList.toggle('hidden', !show);
+            }
+
+            function showError(message) {
+                const errorElement = document.getElementById('errorMessage');
+                errorElement.textContent = message;
+                errorElement.classList.remove('hidden');
+            }
+
+            function hideError() {
+                document.getElementById('errorMessage').classList.add('hidden');
+            }
+
+            function updateDateRangeDisplay(startDate, endDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                const display = `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+                document.getElementById('dateRangeDisplay').textContent = `Showing results for ${display}`;
+            }
+
+            function updateLastUpdatedTime() {
+                const now = new Date();
+                document.getElementById('lastUpdated').textContent = `Last updated: ${now.toLocaleTimeString()}`;
+            }
+
+            // Utility functions
+            function formatDate(date) {
+                return date.toISOString().split('T')[0];
+            }
+
+            function formatChartDate(dateString) {
+                return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            }
+
+            function formatCurrency(amount) {
+                return '₱' + parseFloat(amount).toLocaleString('en-US', { minimumFractionDigits: 2 });
+            }
+
+            function getStatusClass(status) {
+                switch (status.toLowerCase()) {
+                    case 'success':
+                        return 'bg-green-100 text-green-800';
+                    case 'pending':
+                        return 'bg-yellow-100 text-yellow-800';
+                    case 'cancelled':
+                        return 'bg-red-100 text-red-800';
                     default:
-                        return 0;
+                        return 'bg-gray-100 text-gray-800';
                 }
-            });
-
-            currentPage = 1; // Reset to first page when filtering
-            displayTransactions();
-        }
-
-        function displayTransactions() {
-            const tbody = document.getElementById('transactionsTable');
-            tbody.innerHTML = '';
-
-            if (filteredTransactions.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">No transactions found</td></tr>';
-                updatePaginationInfo(0, 0, 0);
-                return;
             }
-
-            // Calculate pagination
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = Math.min(startIndex + itemsPerPage, filteredTransactions.length);
-            const pageTransactions = filteredTransactions.slice(startIndex, endIndex);
-
-            // Display transactions
-            pageTransactions.forEach(transaction => {
-                const row = document.createElement('tr');
-                row.className = 'border-b hover:bg-gray-50';
-
-                // Parse items to separate product name and quantity
-                const itemMatch = transaction.items.match(/^(\d+)x\s+(.+)$/);
-                const quantity = itemMatch ? itemMatch[1] : '1';
-                const productName = itemMatch ? itemMatch[2] : transaction.items;
-
-                row.innerHTML = `
-                                                                        <td class="px-4 py-3">#${transaction.id}</td>
-                                                                        <td class="px-4 py-3">${transaction.customer_name}</td>
-                                                                        <td class="px-4 py-3 font-semibold">${formatCurrency(transaction.amount)}</td>
-                                                                        <td class="px-4 py-3" title="${productName}">${productName.length > 20 ? productName.substring(0, 20) + '...' : productName}</td>
-                                                                        <td class="px-4 py-3 text-center font-medium">${quantity}</td>
-                                                                        <td class="px-4 py-3">${transaction.date}</td>
-                                                                        <td class="px-4 py-3">
-                                                                            <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(transaction.status)}">
-                                                                                ${transaction.status}
-                                                                            </span>
-                                                                        </td>
-                                                                    `;
-                tbody.appendChild(row);
-            });
-
-            updatePaginationInfo(startIndex + 1, endIndex, filteredTransactions.length);
-            updatePaginationControls();
-        }
-
-        function updatePaginationInfo(start, end, total) {
-            document.getElementById('transactionInfo').textContent = `Showing ${start} - ${end} of ${total} transactions`;
-        }
-
-        function updatePaginationControls() {
-            const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
-            const prevBtn = document.getElementById('prevPage');
-            const nextBtn = document.getElementById('nextPage');
-            const pageInfo = document.getElementById('pageInfo');
-
-            // Update page info
-            pageInfo.textContent = `Page ${currentPage} of ${Math.max(1, totalPages)}`;
-
-            // Update previous button
-            if (currentPage > 1) {
-                prevBtn.disabled = false;
-                prevBtn.className = 'px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 cursor-pointer';
-            } else {
-                prevBtn.disabled = true;
-                prevBtn.className = 'px-3 py-1 bg-gray-200 text-gray-400 rounded-lg text-sm cursor-not-allowed';
-            }
-
-            // Update next button
-            if (currentPage < totalPages) {
-                nextBtn.disabled = false;
-                nextBtn.className = 'px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 cursor-pointer';
-            } else {
-                nextBtn.disabled = true;
-                nextBtn.className = 'px-3 py-1 bg-gray-200 text-gray-400 rounded-lg text-sm cursor-not-allowed';
-            }
-        }
-
-        function clearFilters() {
-            // Reset to current month
-            const now = new Date();
-            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-            document.getElementById('startDate').value = formatDate(firstDay);
-            document.getElementById('endDate').value = formatDate(lastDay);
-
-            loadSalesData();
-        }
-
-        function showLoading(show) {
-            document.getElementById('loadingIndicator').classList.toggle('hidden', !show);
-        }
-
-        function showError(message) {
-            const errorElement = document.getElementById('errorMessage');
-            errorElement.textContent = message;
-            errorElement.classList.remove('hidden');
-        }
-
-        function hideError() {
-            document.getElementById('errorMessage').classList.add('hidden');
-        }
-
-        function updateDateRangeDisplay(startDate, endDate) {
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            const display = `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
-            document.getElementById('dateRangeDisplay').textContent = `Showing results for ${display}`;
-        }
-
-        function updateLastUpdatedTime() {
-            const now = new Date();
-            document.getElementById('lastUpdated').textContent = `Last updated: ${now.toLocaleTimeString()}`;
-        }
-
-        // Utility functions
-        function formatDate(date) {
-            return date.toISOString().split('T')[0];
-        }
-
-        function formatChartDate(dateString) {
-            return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        }
-
-        function formatCurrency(amount) {
-            return '₱' + parseFloat(amount).toLocaleString('en-US', { minimumFractionDigits: 2 });
-        }
-
-        function getStatusClass(status) {
-            switch (status.toLowerCase()) {
-                case 'success':
-                    return 'bg-green-100 text-green-800';
-                case 'pending':
-                    return 'bg-yellow-100 text-yellow-800';
-                case 'cancelled':
-                    return 'bg-red-100 text-red-800';
-                default:
-                    return 'bg-gray-100 text-gray-800';
-            }
-        }
-    </script>
+        </script>
+    @endpush
 @endsection

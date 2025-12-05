@@ -37,18 +37,18 @@
                         </td>
                         <td class="px-6 py-4">
                             @php
-                                $statusColors = [
-                                    'Pending' => 'bg-yellow-100 text-yellow-800',
-                                    'In Progress' => 'bg-blue-100 text-blue-800',
-                                    'On Hold' => 'bg-orange-100 text-orange-800',
-                                    'Completed' => 'bg-green-100 text-green-800',
-                                ];
-                                $statusIcons = [
-                                    'Pending' => 'fas fa-clock',
-                                    'In Progress' => 'fas fa-hourglass-half',
-                                    'On Hold' => 'fas fa-pause',
-                                    'Completed' => 'fas fa-check-circle',
-                                ];
+    $statusColors = [
+        'Pending' => 'bg-yellow-100 text-yellow-800',
+        'In Progress' => 'bg-blue-100 text-blue-800',
+        'On Hold' => 'bg-orange-100 text-orange-800',
+        'Completed' => 'bg-green-100 text-green-800',
+    ];
+    $statusIcons = [
+        'Pending' => 'fas fa-clock',
+        'In Progress' => 'fas fa-hourglass-half',
+        'On Hold' => 'fas fa-pause',
+        'Completed' => 'fas fa-check-circle',
+    ];
                             @endphp
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$service->status] ?? 'bg-gray-100 text-gray-800' }}">
                                 <i class="{{ $statusIcons[$service->status] ?? 'fas fa-info-circle' }} mr-1"></i>
@@ -132,3 +132,11 @@
 
 {{-- Include FontAwesome for icons --}}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+@push('scripts')
+    <script>
+        // HTMX Performance Configuration
+        htmx.config.timeout = 10000;
+        htmx.config.defaultSwapDelay = 100;
+        htmx.config.defaultSettleDelay = 100;
+    </script>
+@endpush

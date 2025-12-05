@@ -111,3 +111,11 @@
         </div>
     @endif
 </div>
+@push('scripts')
+    <script>
+        // HTMX Performance Configuration
+        htmx.config.timeout = 10000;
+        htmx.config.defaultSwapDelay = 100;
+        htmx.config.defaultSettleDelay = 100;
+    </script>
+@endpush

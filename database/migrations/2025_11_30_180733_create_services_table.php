@@ -27,6 +27,12 @@ return new class extends Migration
             $table->date('date_in')->nullable();
             $table->date('date_out')->nullable();
             $table->timestamps();
+
+            // Indexes for faster querying
+            $table->index('status');
+            $table->index('date_in');
+            $table->index('date_out');
+            $table->index(['customer_id', 'status']);
         });
     }
 

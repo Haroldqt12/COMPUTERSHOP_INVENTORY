@@ -296,150 +296,156 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Get filter elements
-            const searchInput = document.getElementById('searchInput');
-            const statusFilter = document.getElementById('statusFilter');
-            const dateFilter = document.getElementById('dateFilter');
+    @push('scripts')
+        <script>
+            // HTMX Performance Configuration
+            htmx.config.timeout = 10000;
+            htmx.config.defaultSwapDelay = 100;
+            htmx.config.defaultSettleDelay = 100;
 
-            // Function to apply filters and reload page
-            function applyFilters() {
-                const search = searchInput.value;
-                const status = statusFilter.value;
-                const date = dateFilter.value;
+            document.addEventListener('DOMContentLoaded', function () {
+                // Get filter elements
+                const searchInput = document.getElementById('searchInput');
+                const statusFilter = document.getElementById('statusFilter');
+                const dateFilter = document.getElementById('dateFilter');
 
-                // Build URL with filters
-                let url = new URL(window.location.href);
-                let params = new URLSearchParams(url.search);
+                // Function to apply filters and reload page
+                function applyFilters() {
+                    const search = searchInput.value;
+                    const status = statusFilter.value;
+                    const date = dateFilter.value;
 
-                if (search) {
-                    params.set('search', search);
-                } else {
-                    params.delete('search');
-                }
+                    // Build URL with filters
+                    let url = new URL(window.location.href);
+                    let params = new URLSearchParams(url.search);
 
-                if (status) {
-                    params.set('status', status);
-                } else {
-                    params.delete('status');
-                }
-
-                if (date) {
-                    params.set('date', date);
-                } else {
-                    params.delete('date');
-                }
-
-                // Reload page with new filters
-                window.location.href = url.pathname + '?' + params.toString();
-            }
-
-            // Add event listeners for real-time filtering
-            statusFilter.addEventListener('change', applyFilters);
-            dateFilter.addEventListener('change', applyFilters);
-
-            // Add debounced search to prevent too many requests
-            let searchTimeout;
-            searchInput.addEventListener('input', function () {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(applyFilters, 500); // Wait 500ms after user stops typing
-            });
-
-            // Set initial search value from URL
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('search')) {
-                searchInput.value = urlParams.get('search');
-            }
-        });
-
-        // Simple SweetAlert Functions - No Hover Effects
-        function confirmOrder(id) {
-            Swal.fire({
-                title: "Confirm Order?",
-                text: "Do you want to confirm this order?",
-                icon: "question",
-                showCancelButton: true,
-                confirmButtonColor: "#16a34a",
-                cancelButtonColor: "#6b7280",
-                confirmButtonText: "Yes, Confirm",
-                cancelButtonText: "Cancel"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    updateOrderStatus(id, 'confirm');
-                }
-            });
-        }
-
-        function cancelOrder(id) {
-            Swal.fire({
-                title: "Cancel Order?",
-                text: "This action cannot be undone!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#dc2626",
-                cancelButtonColor: "#6b7280",
-                confirmButtonText: "Yes, Cancel",
-                cancelButtonText: "Keep Order"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    updateOrderStatus(id, 'cancel');
-                }
-            });
-        }
-
-        // Function to update order status via AJAX
-        function updateOrderStatus(orderId, action) {
-            const endpoint = action === 'confirm' ? 'confirm' : 'cancel';
-
-            fetch(`/purchase/${orderId}/${endpoint}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({ _method: 'PUT' })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Show success message and then reload page
-                        Swal.fire({
-                            title: 'Success!',
-                            text: data.message,
-                            icon: 'success',
-                            confirmButtonColor: '#16a34a',
-                            confirmButtonText: 'OK'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                // Reload the page to update all records and statistics
-                                window.location.reload();
-                            }
-                        });
+                    if (search) {
+                        params.set('search', search);
                     } else {
+                        params.delete('search');
+                    }
+
+                    if (status) {
+                        params.set('status', status);
+                    } else {
+                        params.delete('status');
+                    }
+
+                    if (date) {
+                        params.set('date', date);
+                    } else {
+                        params.delete('date');
+                    }
+
+                    // Reload page with new filters
+                    window.location.href = url.pathname + '?' + params.toString();
+                }
+
+                // Add event listeners for real-time filtering
+                statusFilter.addEventListener('change', applyFilters);
+                dateFilter.addEventListener('change', applyFilters);
+
+                // Add debounced search to prevent too many requests
+                let searchTimeout;
+                searchInput.addEventListener('input', function () {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(applyFilters, 500); // Wait 500ms after user stops typing
+                });
+
+                // Set initial search value from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('search')) {
+                    searchInput.value = urlParams.get('search');
+                }
+            });
+
+            // Simple SweetAlert Functions - No Hover Effects
+            function confirmOrder(id) {
+                Swal.fire({
+                    title: "Confirm Order?",
+                    text: "Do you want to confirm this order?",
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonColor: "#16a34a",
+                    cancelButtonColor: "#6b7280",
+                    confirmButtonText: "Yes, Confirm",
+                    cancelButtonText: "Cancel"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        updateOrderStatus(id, 'confirm');
+                    }
+                });
+            }
+
+            function cancelOrder(id) {
+                Swal.fire({
+                    title: "Cancel Order?",
+                    text: "This action cannot be undone!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#dc2626",
+                    cancelButtonColor: "#6b7280",
+                    confirmButtonText: "Yes, Cancel",
+                    cancelButtonText: "Keep Order"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        updateOrderStatus(id, 'cancel');
+                    }
+                });
+            }
+
+            // Function to update order status via AJAX
+            function updateOrderStatus(orderId, action) {
+                const endpoint = action === 'confirm' ? 'confirm' : 'cancel';
+
+                fetch(`/purchase/${orderId}/${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ _method: 'PUT' })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Show success message and then reload page
+                            Swal.fire({
+                                title: 'Success!',
+                                text: data.message,
+                                icon: 'success',
+                                confirmButtonColor: '#16a34a',
+                                confirmButtonText: 'OK'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    // Reload the page to update all records and statistics
+                                    window.location.reload();
+                                }
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: data.message || `Failed to ${action} order.`,
+                                icon: 'error',
+                                confirmButtonColor: '#dc2626',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
                         Swal.fire({
                             title: 'Error!',
-                            text: data.message || `Failed to ${action} order.`,
+                            text: `Failed to ${action} order. Please try again.`,
                             icon: 'error',
                             confirmButtonColor: '#dc2626',
                             confirmButtonText: 'OK'
                         });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    Swal.fire({
-                        title: 'Error!',
-                        text: `Failed to ${action} order. Please try again.`,
-                        icon: 'error',
-                        confirmButtonColor: '#dc2626',
-                        confirmButtonText: 'OK'
                     });
-                });
-        }
-    </script>
-
+            }
+        </script>
+    @endpush
     <style>
         /* Remove ALL hover effects from SweetAlert buttons */
         .swal2-confirm:hover,

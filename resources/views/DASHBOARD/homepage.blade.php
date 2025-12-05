@@ -157,103 +157,110 @@
             </div>
         </div>
     </div>
+    @push('scripts')
+        <script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            loadDashboardData();
+            // HTMX Performance Configuration
+            htmx.config.timeout = 10000;
+            htmx.config.defaultSwapDelay = 100;
+            htmx.config.defaultSettleDelay = 100;
 
-            // Auto-refresh every 30 seconds
-            setInterval(loadDashboardData, 30000);
-        });
+            document.addEventListener('DOMContentLoaded', function () {
+                loadDashboardData();
 
-        async function loadDashboardData() {
-            try {
-                const response = await fetch('/api/dashboard/data');
-                const result = await response.json();
+                // Auto-refresh every 30 seconds
+                setInterval(loadDashboardData, 30000);
+            });
 
-                if (result.success) {
-                    const data = result.data;
-                    updateMetrics(data.metrics);
-                    updateTopProducts(data.top_products);
-                    updateLowStockAlerts(data.low_stock_alerts);
-                    updateSupplierStatus(data.supplier_status);
-                    updateInventoryStatus(data.inventory_status);
+            async function loadDashboardData() {
+                try {
+                    const response = await fetch('/api/dashboard/data');
+                    const result = await response.json();
+
+                    if (result.success) {
+                        const data = result.data;
+                        updateMetrics(data.metrics);
+                        updateTopProducts(data.top_products);
+                        updateLowStockAlerts(data.low_stock_alerts);
+                        updateSupplierStatus(data.supplier_status);
+                        updateInventoryStatus(data.inventory_status);
+                    }
+                } catch (error) {
+                    console.error('Error loading dashboard data:', error);
+                    // Show fallback data
+                    showFallbackData();
                 }
-            } catch (error) {
-                console.error('Error loading dashboard data:', error);
-                // Show fallback data
-                showFallbackData();
-            }
-        }
-
-        function updateMetrics(metrics) {
-            document.getElementById('employeeCount').textContent = metrics.employees;
-            document.getElementById('customerCount').textContent = metrics.customers;
-            document.getElementById('productCount').textContent = metrics.products;
-            document.getElementById('todaysSales').textContent = '₱' + new Intl.NumberFormat('en-PH').format(metrics.daily_sales);
-        }
-
-        function updateTopProducts(topProducts) {
-            const container = document.getElementById('topProducts');
-
-            if (topProducts.length === 0) {
-                container.innerHTML = '<div class="text-gray-500 text-center py-8">No sales data available</div>';
-                return;
             }
 
-            const html = topProducts.map(product => `
-                                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border hover:bg-gray-100 transition-colors">
-                                            <div class="flex-1">
-                                                <p class="font-semibold text-gray-800 text-sm">${product.name}</p>
-                                                <p class="text-xs text-gray-500">${product.price} • ${product.sold} sold</p>
-                                            </div>
-                                            <div class="text-lg font-bold text-indigo-600">${product.sold}</div>
-                                        </div>
-                                    `).join('');
-            container.innerHTML = html;
-        }
-
-        function updateLowStockAlerts(lowStockItems) {
-            const container = document.getElementById('lowStockItems');
-
-            if (lowStockItems.length === 0) {
-                container.innerHTML = '<div class="text-green-600 text-center py-8 font-medium">All items well stocked!</div>';
-                return;
+            function updateMetrics(metrics) {
+                document.getElementById('employeeCount').textContent = metrics.employees;
+                document.getElementById('customerCount').textContent = metrics.customers;
+                document.getElementById('productCount').textContent = metrics.products;
+                document.getElementById('todaysSales').textContent = '₱' + new Intl.NumberFormat('en-PH').format(metrics.daily_sales);
             }
 
-            const html = lowStockItems.map(item => `
-                                        <div class="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border border-yellow-200 hover:bg-yellow-100 transition-colors">
-                                            <div class="flex-1">
-                                                <p class="font-semibold text-gray-800 text-sm">${item.name}</p>
-                                                <p class="text-xs text-yellow-600">${item.price} • ${item.left} left in stock</p>
-                                            </div>
-                                            <div class="text-lg font-bold text-yellow-600">${item.left}</div>
-                                        </div>
-                                    `).join('');
-            container.innerHTML = html;
-        }
+            function updateTopProducts(topProducts) {
+                const container = document.getElementById('topProducts');
 
-        function updateSupplierStatus(supplierStatus) {
-            document.getElementById('activeSuppliers').textContent = supplierStatus.active;
-            document.getElementById('inactiveSuppliers').textContent = supplierStatus.inactive;
-            document.getElementById('supplierPercentage').textContent = supplierStatus.percentage + '%';
-            document.getElementById('supplierBar').style.width = supplierStatus.percentage + '%';
-        }
+                if (topProducts.length === 0) {
+                    container.innerHTML = '<div class="text-gray-500 text-center py-8">No sales data available</div>';
+                    return;
+                }
 
-        function updateInventoryStatus(inventoryStatus) {
-            document.getElementById('brandNewProducts').textContent = inventoryStatus.brand_new;
-            document.getElementById('usedProducts').textContent = inventoryStatus.used;
-            document.getElementById('inventoryPercentage').textContent = inventoryStatus.percentage + '%';
-            document.getElementById('inventoryBar').style.width = inventoryStatus.percentage + '%';
-        }
+                const html = topProducts.map(product => `
+                                                                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border hover:bg-gray-100 transition-colors">
+                                                                        <div class="flex-1">
+                                                                            <p class="font-semibold text-gray-800 text-sm">${product.name}</p>
+                                                                            <p class="text-xs text-gray-500">${product.price} • ${product.sold} sold</p>
+                                                                        </div>
+                                                                        <div class="text-lg font-bold text-indigo-600">${product.sold}</div>
+                                                                    </div>
+                                                                `).join('');
+                container.innerHTML = html;
+            }
 
-        function showFallbackData() {
-            // Show placeholder data when API fails
-            updateMetrics({ employees: 0, customers: 0, products: 0, daily_sales: 0 });
-            document.getElementById('topProducts').innerHTML = '<div class="text-gray-500 text-center py-8">Unable to load data</div>';
-            document.getElementById('lowStockItems').innerHTML = '<div class="text-gray-500 text-center py-8">Unable to load data</div>';
-            updateSupplierStatus({ active: 0, inactive: 0, percentage: 0 });
-            updateInventoryStatus({ brand_new: 0, used: 0, percentage: 0 });
-        }
-    </script>
+            function updateLowStockAlerts(lowStockItems) {
+                const container = document.getElementById('lowStockItems');
+
+                if (lowStockItems.length === 0) {
+                    container.innerHTML = '<div class="text-green-600 text-center py-8 font-medium">All items well stocked!</div>';
+                    return;
+                }
+
+                const html = lowStockItems.map(item => `
+                                                                    <div class="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border border-yellow-200 hover:bg-yellow-100 transition-colors">
+                                                                        <div class="flex-1">
+                                                                            <p class="font-semibold text-gray-800 text-sm">${item.name}</p>
+                                                                            <p class="text-xs text-yellow-600">${item.price} • ${item.left} left in stock</p>
+                                                                        </div>
+                                                                        <div class="text-lg font-bold text-yellow-600">${item.left}</div>
+                                                                    </div>
+                                                                `).join('');
+                container.innerHTML = html;
+            }
+
+            function updateSupplierStatus(supplierStatus) {
+                document.getElementById('activeSuppliers').textContent = supplierStatus.active;
+                document.getElementById('inactiveSuppliers').textContent = supplierStatus.inactive;
+                document.getElementById('supplierPercentage').textContent = supplierStatus.percentage + '%';
+                document.getElementById('supplierBar').style.width = supplierStatus.percentage + '%';
+            }
+
+            function updateInventoryStatus(inventoryStatus) {
+                document.getElementById('brandNewProducts').textContent = inventoryStatus.brand_new;
+                document.getElementById('usedProducts').textContent = inventoryStatus.used;
+                document.getElementById('inventoryPercentage').textContent = inventoryStatus.percentage + '%';
+                document.getElementById('inventoryBar').style.width = inventoryStatus.percentage + '%';
+            }
+
+            function showFallbackData() {
+                // Show placeholder data when API fails
+                updateMetrics({ employees: 0, customers: 0, products: 0, daily_sales: 0 });
+                document.getElementById('topProducts').innerHTML = '<div class="text-gray-500 text-center py-8">Unable to load data</div>';
+                document.getElementById('lowStockItems').innerHTML = '<div class="text-gray-500 text-center py-8">Unable to load data</div>';
+                updateSupplierStatus({ active: 0, inactive: 0, percentage: 0 });
+                updateInventoryStatus({ brand_new: 0, used: 0, percentage: 0 });
+            }
+        </script>
+    @endpush
 @endsection

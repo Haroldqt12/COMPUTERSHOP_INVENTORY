@@ -226,197 +226,203 @@
 
     <!-- Include SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @push('scripts')
+        <script>
+            // HTMX Performance Configuration
+            htmx.config.timeout = 10000;
+            htmx.config.defaultSwapDelay = 100;
+            htmx.config.defaultSettleDelay = 100;
 
-    <script>
-        // Modal elements
-        const customerModal = document.getElementById('customerModal');
-        const openCustomerModal = document.getElementById('openCustomerModal');
-        const closeCustomerModal = document.getElementById('closeCustomerModal');
-        const cancelBtn = document.getElementById('cancelBtn');
+            // Modal elements
+            const customerModal = document.getElementById('customerModal');
+            const openCustomerModal = document.getElementById('openCustomerModal');
+            const closeCustomerModal = document.getElementById('closeCustomerModal');
+            const cancelBtn = document.getElementById('cancelBtn');
 
-        // Calculate statistics
-        function updateStatistics() {
-            const customers = document.querySelectorAll('tbody tr:not(:has(td[colspan]))');
-            let totalCustomers = 0;
-            let maleCount = 0;
-            let femaleCount = 0;
+            // Calculate statistics
+            function updateStatistics() {
+                const customers = document.querySelectorAll('tbody tr:not(:has(td[colspan]))');
+                let totalCustomers = 0;
+                let maleCount = 0;
+                let femaleCount = 0;
 
-            customers.forEach(row => {
-                const cells = row.querySelectorAll('td');
-                if (cells.length > 3) {
-                    totalCustomers++;
-                    const gender = cells[3].textContent.trim();
-                    if (gender === 'Male') {
-                        maleCount++;
-                    } else if (gender === 'Female') {
-                        femaleCount++;
+                customers.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length > 3) {
+                        totalCustomers++;
+                        const gender = cells[3].textContent.trim();
+                        if (gender === 'Male') {
+                            maleCount++;
+                        } else if (gender === 'Female') {
+                            femaleCount++;
+                        }
                     }
-                }
-            });
-
-            document.getElementById('totalCustomersCount').textContent = totalCustomers;
-            document.getElementById('maleCount').textContent = maleCount;
-            document.getElementById('femaleCount').textContent = femaleCount;
-        }
-
-        // Modal functions
-        function openModal() {
-            customerModal.classList.remove('hidden');
-            customerModal.classList.add('flex');
-            document.body.style.overflow = 'hidden';
-
-            setTimeout(() => {
-                customerModal.querySelector('.max-w-md').classList.remove('scale-95');
-                customerModal.querySelector('.max-w-md').classList.add('scale-100');
-            }, 10);
-        }
-
-        function closeModal() {
-            customerModal.querySelector('.max-w-md').classList.remove('scale-100');
-            customerModal.querySelector('.max-w-md').classList.add('scale-95');
-            setTimeout(() => {
-                customerModal.classList.add('hidden');
-                customerModal.classList.remove('flex');
-                document.body.style.overflow = 'auto';
-                document.getElementById('customerForm').reset();
-            }, 200);
-        }
-
-        // Event listeners for modal
-        openCustomerModal.addEventListener('click', openModal);
-        closeCustomerModal.addEventListener('click', closeModal);
-        cancelBtn.addEventListener('click', closeModal);
-
-        // Close modal when clicking outside
-        customerModal.addEventListener('click', (e) => {
-            if (e.target === customerModal) {
-                closeModal();
-            }
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !customerModal.classList.contains('hidden')) {
-                closeModal();
-            }
-        });
-
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('input', function (e) {
-            const searchTerm = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('tbody tr:not(:has(td[colspan]))');
-
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
-            });
-
-            document.getElementById('clearSearch').classList.toggle('hidden', !searchTerm);
-        });
-
-        // Clear search
-        document.getElementById('clearSearch').addEventListener('click', (e) => {
-            e.preventDefault();
-            document.getElementById('searchInput').value = '';
-            document.getElementById('clearSearch').classList.add('hidden');
-            document.querySelectorAll('tbody tr').forEach(row => row.style.display = '');
-        });
-
-        async function editCustomer(id) {
-            try {
-                const response = await fetch(`/customers/${id}`);
-                const customer = await response.json();
-
-                document.getElementById('modalTitle').textContent = 'Edit Customer';
-                document.getElementById('customerId').value = customer.id;
-                document.getElementById('firstName').value = customer.first_name;
-                document.getElementById('lastName').value = customer.last_name;
-                document.getElementById('contactNo').value = customer.contact_no;
-                document.getElementById('gender').value = customer.gender;
-                document.getElementById('street').value = customer.street;
-                document.getElementById('brgy').value = customer.brgy;
-                document.getElementById('cityProvince').value = customer.city_province;
-                document.getElementById('submitBtn').textContent = 'Update Customer';
-                openModal();
-            } catch (error) {
-                Swal.fire('Error', 'Failed to load customer data', 'error');
-            }
-        }
-
-        document.getElementById('customerForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-
-            const submitBtn = document.getElementById('submitBtn');
-            const customerId = document.getElementById('customerId').value;
-            const isEditing = customerId !== '';
-
-            submitBtn.disabled = true;
-            submitBtn.textContent = isEditing ? 'Updating...' : 'Saving...';
-
-            const formData = {
-                first_name: document.getElementById('firstName').value,
-                last_name: document.getElementById('lastName').value,
-                contact_no: document.getElementById('contactNo').value,
-                gender: document.getElementById('gender').value,
-                street: document.getElementById('street').value,
-                brgy: document.getElementById('brgy').value,
-                city_province: document.getElementById('cityProvince').value,
-                _token: document.querySelector('input[name="_token"]').value
-            };
-
-            const url = isEditing ? `/customers/${customerId}` : '/customers';
-            const method = isEditing ? 'PUT' : 'POST';
-
-            try {
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
-                    },
-                    body: JSON.stringify(formData)
                 });
 
-                const data = await response.json();
-
-                if (response.ok) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        text: isEditing ? 'Customer updated successfully!' : 'Customer added successfully!',
-                    }).then(() => {
-                        window.location.reload();
-                    });
-                } else {
-                    if (data.errors) {
-                        let errorMessage = 'Please fix the following errors:\n';
-                        Object.values(data.errors).forEach(error => {
-                            errorMessage += `• ${error[0]}\n`;
-                        });
-                        Swal.fire('Validation Error', errorMessage, 'error');
-                    } else {
-                        throw new Error(data.message || 'Failed to save customer');
-                    }
-                }
-            } catch (error) {
-                Swal.fire('Error', error.message, 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = isEditing ? 'Update Customer' : 'Save Customer';
+                document.getElementById('totalCustomersCount').textContent = totalCustomers;
+                document.getElementById('maleCount').textContent = maleCount;
+                document.getElementById('femaleCount').textContent = femaleCount;
             }
-        });
 
-        // Initialize statistics on page load
-        document.addEventListener('DOMContentLoaded', updateStatistics);
+            // Modal functions
+            function openModal() {
+                customerModal.classList.remove('hidden');
+                customerModal.classList.add('flex');
+                document.body.style.overflow = 'hidden';
 
-        // Show messages from server
-        @if(session('success'))
-            Swal.fire('Success', '{{ session('success') }}', 'success');
-        @endif
+                setTimeout(() => {
+                    customerModal.querySelector('.max-w-md').classList.remove('scale-95');
+                    customerModal.querySelector('.max-w-md').classList.add('scale-100');
+                }, 10);
+            }
 
-        @if(session('error'))
-            Swal.fire('Error', '{{ session('error') }}', 'error');
-        @endif
-    </script>
+            function closeModal() {
+                customerModal.querySelector('.max-w-md').classList.remove('scale-100');
+                customerModal.querySelector('.max-w-md').classList.add('scale-95');
+                setTimeout(() => {
+                    customerModal.classList.add('hidden');
+                    customerModal.classList.remove('flex');
+                    document.body.style.overflow = 'auto';
+                    document.getElementById('customerForm').reset();
+                }, 200);
+            }
+
+            // Event listeners for modal
+            openCustomerModal.addEventListener('click', openModal);
+            closeCustomerModal.addEventListener('click', closeModal);
+            cancelBtn.addEventListener('click', closeModal);
+
+            // Close modal when clicking outside
+            customerModal.addEventListener('click', (e) => {
+                if (e.target === customerModal) {
+                    closeModal();
+                }
+            });
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !customerModal.classList.contains('hidden')) {
+                    closeModal();
+                }
+            });
+
+            // Search functionality
+            document.getElementById('searchInput').addEventListener('input', function (e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const rows = document.querySelectorAll('tbody tr:not(:has(td[colspan]))');
+
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+
+                document.getElementById('clearSearch').classList.toggle('hidden', !searchTerm);
+            });
+
+            // Clear search
+            document.getElementById('clearSearch').addEventListener('click', (e) => {
+                e.preventDefault();
+                document.getElementById('searchInput').value = '';
+                document.getElementById('clearSearch').classList.add('hidden');
+                document.querySelectorAll('tbody tr').forEach(row => row.style.display = '');
+            });
+
+            async function editCustomer(id) {
+                try {
+                    const response = await fetch(`/customers/${id}`);
+                    const customer = await response.json();
+
+                    document.getElementById('modalTitle').textContent = 'Edit Customer';
+                    document.getElementById('customerId').value = customer.id;
+                    document.getElementById('firstName').value = customer.first_name;
+                    document.getElementById('lastName').value = customer.last_name;
+                    document.getElementById('contactNo').value = customer.contact_no;
+                    document.getElementById('gender').value = customer.gender;
+                    document.getElementById('street').value = customer.street;
+                    document.getElementById('brgy').value = customer.brgy;
+                    document.getElementById('cityProvince').value = customer.city_province;
+                    document.getElementById('submitBtn').textContent = 'Update Customer';
+                    openModal();
+                } catch (error) {
+                    Swal.fire('Error', 'Failed to load customer data', 'error');
+                }
+            }
+
+            document.getElementById('customerForm').addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const submitBtn = document.getElementById('submitBtn');
+                const customerId = document.getElementById('customerId').value;
+                const isEditing = customerId !== '';
+
+                submitBtn.disabled = true;
+                submitBtn.textContent = isEditing ? 'Updating...' : 'Saving...';
+
+                const formData = {
+                    first_name: document.getElementById('firstName').value,
+                    last_name: document.getElementById('lastName').value,
+                    contact_no: document.getElementById('contactNo').value,
+                    gender: document.getElementById('gender').value,
+                    street: document.getElementById('street').value,
+                    brgy: document.getElementById('brgy').value,
+                    city_province: document.getElementById('cityProvince').value,
+                    _token: document.querySelector('input[name="_token"]').value
+                };
+
+                const url = isEditing ? `/customers/${customerId}` : '/customers';
+                const method = isEditing ? 'PUT' : 'POST';
+
+                try {
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: isEditing ? 'Customer updated successfully!' : 'Customer added successfully!',
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        if (data.errors) {
+                            let errorMessage = 'Please fix the following errors:\n';
+                            Object.values(data.errors).forEach(error => {
+                                errorMessage += `• ${error[0]}\n`;
+                            });
+                            Swal.fire('Validation Error', errorMessage, 'error');
+                        } else {
+                            throw new Error(data.message || 'Failed to save customer');
+                        }
+                    }
+                } catch (error) {
+                    Swal.fire('Error', error.message, 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = isEditing ? 'Update Customer' : 'Save Customer';
+                }
+            });
+
+            // Initialize statistics on page load
+            document.addEventListener('DOMContentLoaded', updateStatistics);
+
+            // Show messages from server
+            @if(session('success'))
+                Swal.fire('Success', '{{ session('success') }}', 'success');
+            @endif
+
+            @if(session('error'))
+                Swal.fire('Error', '{{ session('error') }}', 'error');
+            @endif
+        </script>
+    @endpush
 @endsection
